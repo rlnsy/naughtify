@@ -27,6 +27,10 @@ public class NotificationListener extends NotificationListenerService {
         Intent i = new Intent("com.rowlindsay.NOTIFICATION_LISTEN");
         i.putExtra("notification event","notification added");
         sendBroadcast(i);
+
+        Intent notificationSend = new Intent("com.rowlindsay.NOTIFICATION_LISTEN");
+        notificationSend.putExtra("notification info",sbn);
+        sendBroadcast(notificationSend);
     }
 
     @Override
