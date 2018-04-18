@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(new App());
 
@@ -20,14 +23,32 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>{
+
+  static const platform = const MethodChannel('com.rowlindsay/notification');
+
+  Runes smiley = new Runes('\u{1f607}');
+
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Naughtify'),
       ),
       body: new Center(
-        child: new Text('stuff goes here'),
+        child: new Text('click the button to clear all notifications now ${new String.fromCharCodes(smiley)}'),
       ),
+      floatingActionButton: new FloatingActionButton(
+          onPressed: _clearNotifications,
+          tooltip: 'Clear Notifications',
+          child: new Icon(Icons.archive)),
     );
+  }
+
+
+  Future<Null> _clearNotifications() async {
+    try {
+      await platform.invokeMethod('clearNotifications');
+    } on PlatformException catch (e) {
+      // method didn't work
+    }
   }
 }
