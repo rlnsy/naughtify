@@ -9,14 +9,16 @@ public class NotificationManager {
 
     // TODO: make this a non-native class
 
-    private Set<StatusBarNotification> notifications;
+    private Set<ManagedEntryNotification> notifications;
 
     public NotificationManager() {
         notifications = new HashSet<>();
     }
 
     public void add(StatusBarNotification sbn) {
-        notifications.add(sbn);
+        ManagedEntryNotification entry = new ManagedEntryNotification(sbn);
+        if (!notifications.contains(entry))
+            notifications.add(entry);
     }
 
     public int getNum() {
