@@ -21,6 +21,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>{
   Widget build(BuildContext context) {
-    return new Text("stuff goes here");
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('Naughtify'),
+      ),
+      body: new Center(
+        child: new Text('stuff goes here'),
+      ),
+    );
   }
 }
