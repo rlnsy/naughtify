@@ -2,7 +2,6 @@
 
 consolidate your information stream
 
-## Getting Started
+## What is this
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+If I told you, then what would be the fun in that, huh?
