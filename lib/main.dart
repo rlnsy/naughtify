@@ -8,7 +8,7 @@ class App extends StatelessWidget {
     return new MaterialApp(
       title: 'Naughtify',
       theme: new ThemeData(
-        primarySwatch: Colors.deepPurple,
+        primarySwatch: Colors.amber,
       ),
       home: new HomePage(),
     );
