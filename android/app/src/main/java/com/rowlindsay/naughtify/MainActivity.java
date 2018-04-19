@@ -53,9 +53,12 @@ public class MainActivity extends FlutterActivity {
     private void proceessMethodCallFromUI(MethodCall call, Result result) {
         if (call.method.equals("clearNotifications")) {
             Intent i = new Intent("com.rowlindsay.UI");
-            i.putExtra("uicommand","clearNotifications");
+            i.putExtra("uicommand", "clearNotifications");
             sendBroadcast(i);
             result.success("sent clear request to notification service");
+        } else if (call.method.equals("getNumNotifications")) {
+            int num = manager.getNum();
+            result.success(num);
         } else {
             result.notImplemented();
         }

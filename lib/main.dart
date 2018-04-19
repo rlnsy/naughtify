@@ -26,20 +26,29 @@ class _HomePageState extends State<HomePage>{
 
   static const platform = const MethodChannel('com.rowlindsay/notification');
 
-  Runes smiley = new Runes('\u{1f607}');
+  Runes smiley = new Runes('\u{1f626}');
+
+  int _numNotifications = 0;
 
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Naughtify'),
       ),
-      body: new Center(
-        child: new Text('click the button to clear all notifications now ${new String.fromCharCodes(smiley)}'),
+      body: new GestureDetector(
+        // only works when tapping text
+        onTap: () {
+          _getNumNotifications();
+        },
+        child: new Center(
+          child: new Text('Naughtify has received $_numNotifications notifications ${new String.fromCharCodes(smiley)}'),
+        )
       ),
-      floatingActionButton: new FloatingActionButton(
-          onPressed: _clearNotifications,
-          tooltip: 'Clear Notifications',
-          child: new Icon(Icons.archive)),
+        floatingActionButton: new FloatingActionButton(
+        onPressed: _clearNotifications,
+        tooltip: 'Clear Notifications',
+        child: new Icon(Icons.archive)
+    ),
     );
   }
 
@@ -49,6 +58,18 @@ class _HomePageState extends State<HomePage>{
       await platform.invokeMethod('clearNotifications');
     } on PlatformException catch (e) {
       // method didn't work
+    }
+  }
+
+  Future _getNumNotifications() async {
+    int num;
+    try {
+      num = await platform.invokeMethod('getNumNotifications');
+      setState(() {
+        _numNotifications = num;
+      });
+    } on PlatformException catch (e) {
+      num = -1;
     }
   }
 }
