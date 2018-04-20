@@ -33,6 +33,7 @@ public class NotificationListener extends NotificationListenerService {
         sendBroadcast(notificationSend);
 
         //NotificationListener.this.cancelAllNotifications();
+        // TODO: figure out why this prevents notifications from going to manager
     }
 
     @Override
