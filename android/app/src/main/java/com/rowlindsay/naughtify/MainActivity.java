@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+
 import io.flutter.app.FlutterActivity;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -21,6 +22,7 @@ public class MainActivity extends FlutterActivity {
 
     private NotificationEventReceiver receiver;
     private NotificationManager manager;
+    //private NotificationSender testSender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,7 @@ public class MainActivity extends FlutterActivity {
         );
 
         manager = new NotificationManager();
+        //testSender = new NotificationSender(this);
 
         receiver = new NotificationEventReceiver();
         IntentFilter filter = new IntentFilter();
@@ -77,5 +80,15 @@ public class MainActivity extends FlutterActivity {
                 Log.d("notification store", "manager has " + manager.getNum() + " notifications stored");
             }
         }
+    }
+
+    public void sendNotification(String title, String content) {
+        /* TODO: make this work
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.notification_icon)
+                .setContentTitle(textTitle)
+                .setContentText(textContent)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        */
     }
 }

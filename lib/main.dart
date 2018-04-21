@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
 
 void main() => runApp(new App());
@@ -52,12 +53,11 @@ class _HomePageState extends State<HomePage>{
     );
   }
 
-
-  Future<Null> _clearNotifications() async {
+  Future _clearNotifications() async {
     try {
       await platform.invokeMethod('clearNotifications');
     } on PlatformException catch (e) {
-      // method didn't work
+      // method didn't work or isn't implemented
     }
   }
 
@@ -65,11 +65,21 @@ class _HomePageState extends State<HomePage>{
     int num;
     try {
       num = await platform.invokeMethod('getNumNotifications');
-      setState(() {
-        _numNotifications = num;
-      });
     } on PlatformException catch (e) {
       num = -1;
     }
+
+    setState(() {
+      _numNotifications = num;
+    });
   }
+
+  Future _sendTestNotification() async {
+    try {
+      await platform.invokeMethod("sendNotification");
+    } on PlatformException catch (e) {
+      // method didn't work or isn't implemented
+    }
+  }
+
 }
