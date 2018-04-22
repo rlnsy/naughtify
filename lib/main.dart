@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
+import 'package:local_notifications/local_notifications.dart';
 
 void main() => runApp(new App());
 
@@ -23,37 +24,55 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => new _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>{
-
+class _HomePageState extends State<HomePage> {
   static const platform = const MethodChannel('com.rowlindsay/notification');
 
   Runes smiley = new Runes('\u{1f626}');
 
   int _numNotifications = 0;
 
+  int _notID = 0;
+
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Naughtify'),
       ),
-      body: new GestureDetector(
-        // only works when tapping text
-        onTap: () {
-          _getNumNotifications();
-        },
-        child: new Center(
-          child: new Text('Naughtify has received $_numNotifications notifications ${new String.fromCharCodes(smiley)}'),
+      body: new Center(
+          child: new Column(
+            children: <Widget>[
+              new FutureBuilder<int>(
+                future: _getNumNotifications(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    _numNotifications = snapshot.data;
+                  } else if (snapshot.hasError) {
+                    return new Text('error getting number of notifications');
+                  }
+                  return new Text('Naughtify has received ${_numNotifications} notifications ${new String.fromCharCodes(smiley)}');
+                }
+              ),
+              // TODO: figure out why the buttons are disabled
+              new RaisedButton(
+                onPressed: _sendTestNotification(),
+                child: new Text('send a notification'),
+              ),
+              new RaisedButton(
+                onPressed: _rebuild(),
+                color: Colors.pink,
+                child: new Text('refresh'),
+              )
+            ],
         )
       ),
-        floatingActionButton: new FloatingActionButton(
-        onPressed: _clearNotifications,
-        tooltip: 'Clear Notifications',
-        child: new Icon(Icons.archive)
-    ),
+      floatingActionButton: new FloatingActionButton(
+          onPressed: _clearNotifications,
+          tooltip: 'Clear Notifications',
+          child: new Icon(Icons.archive)),
     );
   }
 
-  Future _clearNotifications() async {
+  _clearNotifications() async {
     try {
       await platform.invokeMethod('clearNotifications');
     } on PlatformException catch (e) {
@@ -61,25 +80,31 @@ class _HomePageState extends State<HomePage>{
     }
   }
 
-  Future _getNumNotifications() async {
+  Future<int> _getNumNotifications() async {
     int num;
     try {
       num = await platform.invokeMethod('getNumNotifications');
     } on PlatformException catch (e) {
       num = -1;
     }
+    return num;
+  }
 
+  _rebuild() {
+    setState(() {});
+  }
+
+  // TODO: figure out why I have to do this weirdness
+
+  _sendNotification() async {
+    await LocalNotifications.createNotification(
+        title: "Basic", content: "Notification", id: _notID);
+  }
+
+  _sendTestNotification() {
+    _sendNotification();
     setState(() {
-      _numNotifications = num;
+      _notID++;
     });
   }
-
-  Future _sendTestNotification() async {
-    try {
-      await platform.invokeMethod("sendNotification");
-    } on PlatformException catch (e) {
-      // method didn't work or isn't implemented
-    }
-  }
-
 }

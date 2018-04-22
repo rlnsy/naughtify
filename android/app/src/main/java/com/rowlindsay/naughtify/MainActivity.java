@@ -81,14 +81,4 @@ public class MainActivity extends FlutterActivity {
             }
         }
     }
-
-    public void sendNotification(String title, String content) {
-        /* TODO: make this work
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.notification_icon)
-                .setContentTitle(textTitle)
-                .setContentText(textContent)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        */
-    }
 }
