@@ -52,13 +52,16 @@ class _HomePageState extends State<HomePage> {
                   return new Text('Naughtify has received ${_numNotifications} notifications ${new String.fromCharCodes(smiley)}');
                 }
               ),
-              // TODO: figure out why the buttons are disabled
               new RaisedButton(
-                onPressed: _sendTestNotification(),
+                onPressed: () {
+                  _sendNotification();
+                },
                 child: new Text('send a notification'),
               ),
               new RaisedButton(
-                onPressed: _rebuild(),
+                onPressed: () {
+                  setState(() {});
+                },
                 color: Colors.pink,
                 child: new Text('refresh'),
               )
@@ -72,11 +75,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // TODO: figure out why this doesn't work
+
   _clearNotifications() async {
     try {
       await platform.invokeMethod('clearNotifications');
     } on PlatformException catch (e) {
-      // method didn't work or isn't implemented
+      print('could not clear');
     }
   }
 
@@ -90,19 +95,9 @@ class _HomePageState extends State<HomePage> {
     return num;
   }
 
-  _rebuild() {
-    setState(() {});
-  }
-
-  // TODO: figure out why I have to do this weirdness
-
-  _sendNotification() async {
-    await LocalNotifications.createNotification(
+  _sendNotification() {
+    LocalNotifications.createNotification(
         title: "Basic", content: "Notification", id: _notID);
-  }
-
-  _sendTestNotification() {
-    _sendNotification();
     setState(() {
       _notID++;
     });
