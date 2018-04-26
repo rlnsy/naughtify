@@ -25,7 +25,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
   static const platform = const MethodChannel('com.rowlindsay/notification');
+
+  static const AndroidNotificationChannel channel = const AndroidNotificationChannel(
+      id: 'test_notification',
+      name: 'naughtify-test',
+      description: 'grant naughtify the ability to show notifications',
+      importance: AndroidNotificationChannelImportance.HIGH,
+  );
+
+  bool hasNotificationChannel = false;
 
   Runes smiley = new Runes('\u{1f626}');
 
@@ -93,11 +103,36 @@ class _HomePageState extends State<HomePage> {
     return num;
   }
 
+
+  // TODO: works on <8.0, test with oreo device
   _sendNotification() {
-    LocalNotifications.createNotification(
-        title: "Basic", content: "Notification", id: _notID);
+
+    if (_notificationChannelNeeded()) {
+      if (!hasNotificationChannel) {
+        _createNotificationChannel();
+      }
+      LocalNotifications.createNotification(
+          title: "Basic", content: "Notification", id: _notID,
+          androidSettings: new AndroidSettings(channel: channel));
+    } else {
+      LocalNotifications.createNotification(
+          title: "Basic", content: "Notification", id: _notID);
+    }
+
     setState(() {
       _notID++;
     });
+  }
+
+  bool _notificationChannelNeeded() {
+    Future result =  platform.invokeMethod("isChannelNeeded");
+    bool toReturn = false;
+    result.then((val) => toReturn = val);
+    return toReturn;
+  }
+
+  _createNotificationChannel() {
+    LocalNotifications.createAndroidNotificationChannel(channel: channel);
+    hasNotificationChannel = true;
   }
 }
