@@ -75,8 +75,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // TODO: figure out why this doesn't work
-
   _clearNotifications() async {
     try {
       await platform.invokeMethod('clearNotifications');
