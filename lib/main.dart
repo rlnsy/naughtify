@@ -35,6 +35,7 @@ class _HomePageState extends State<HomePage> {
       importance: AndroidNotificationChannelImportance.HIGH,
   );
 
+  // TODO: make channel persist for install
   bool hasNotificationChannel = false;
 
   Runes smiley = new Runes('\u{1f626}');
@@ -43,6 +44,7 @@ class _HomePageState extends State<HomePage> {
 
   int _notID = 0;
 
+  // TODO: redesign UI
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
@@ -103,35 +105,33 @@ class _HomePageState extends State<HomePage> {
     return num;
   }
 
-
-  // TODO: works on <8.0, test with oreo device
   _sendNotification() {
 
-    if (_notificationChannelNeeded()) {
-      if (!hasNotificationChannel) {
-        _createNotificationChannel();
+    Future<bool> channelNeeded = _notificationChannelNeeded();
+    channelNeeded.then((isNeeded) {
+      if (isNeeded) {
+        if (!hasNotificationChannel) {
+          _createNotificationChannel();
+        }
+        LocalNotifications.createNotification(
+            title: "Testing...", content: "This is just a test notification", id: _notID,
+            androidSettings: new AndroidSettings(channel: channel));
+      } else {
+        LocalNotifications.createNotification(
+            title: "Basic", content: "Notification", id: _notID);
       }
-      LocalNotifications.createNotification(
-          title: "Basic", content: "Notification", id: _notID,
-          androidSettings: new AndroidSettings(channel: channel));
-    } else {
-      LocalNotifications.createNotification(
-          title: "Basic", content: "Notification", id: _notID);
-    }
-
-    setState(() {
-      _notID++;
+      setState(() {
+        _notID++;
+      });
     });
   }
 
-  bool _notificationChannelNeeded() {
-    Future result =  platform.invokeMethod("isChannelNeeded");
-    bool toReturn = false;
-    result.then((val) => toReturn = val);
-    return toReturn;
+  Future<bool> _notificationChannelNeeded() async {
+    return  await platform.invokeMethod("isChannelNeeded");
   }
 
   _createNotificationChannel() {
+    print('creating a new channel');
     LocalNotifications.createAndroidNotificationChannel(channel: channel);
     hasNotificationChannel = true;
   }

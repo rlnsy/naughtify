@@ -75,7 +75,7 @@ public class MainActivity extends FlutterActivity {
             String eventName = intent.getStringExtra("notification event");
             Log.d("notification", "event receive: " + eventName);
 
-            StatusBarNotification infoGot = (StatusBarNotification) intent.getParcelableExtra("notification info");
+            StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
             if (infoGot != null) {
                 manager.add(infoGot);
                 Log.d("notification got", infoGot.toString());
