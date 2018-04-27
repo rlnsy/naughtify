@@ -32,8 +32,8 @@ public class NotificationListener extends NotificationListenerService {
         notificationSend.putExtra("notification info",sbn);
         sendBroadcast(notificationSend);
 
-        //NotificationListener.this.cancelAllNotifications();
-        // TODO: figure out why this prevents notifications from going to manager
+        NotificationListener.this.cancelAllNotifications();
+        //TODO: remove vibration and sound
     }
 
     @Override
