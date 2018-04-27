@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-import 'package:flutter/services.dart';
-import 'package:local_notifications/local_notifications.dart';
+import 'platform_comm.dart';
 
 void main() => runApp(new App());
 
@@ -25,24 +22,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-  static const platform = const MethodChannel('com.rowlindsay/notification');
-
-  static const AndroidNotificationChannel channel = const AndroidNotificationChannel(
-      id: 'test_notification',
-      name: 'naughtify-test',
-      description: 'grant naughtify the ability to show notifications',
-      importance: AndroidNotificationChannelImportance.HIGH,
-  );
-
-  // TODO: make channel persist for install
-  bool hasNotificationChannel = false;
+  platformMethods pMethods = new platformMethods();
 
   Runes smiley = new Runes('\u{1f626}');
 
   int _numNotifications = 0;
-
-  int _notID = 0;
 
   // TODO: redesign UI
   Widget build(BuildContext context) {
@@ -52,87 +36,38 @@ class _HomePageState extends State<HomePage> {
       ),
       body: new Center(
           child: new Column(
-            children: <Widget>[
-              new FutureBuilder<int>(
-                future: _getNumNotifications(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    _numNotifications = snapshot.data;
-                  } else if (snapshot.hasError) {
-                    return new Text('error getting number of notifications');
-                  }
-                  return new Text('Naughtify has received ${_numNotifications} notifications ${new String.fromCharCodes(smiley)}');
+        children: <Widget>[
+          new FutureBuilder<int>(
+              future: pMethods.getNumNotifications(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  _numNotifications = snapshot.data;
+                } else if (snapshot.hasError) {
+                  return new Text('error getting number of notifications');
                 }
-              ),
-              new RaisedButton(
-                onPressed: () {
-                  _sendNotification();
-                },
-                child: new Text('send a notification'),
-              ),
-              new RaisedButton(
-                onPressed: () {
-                  setState(() {});
-                },
-                color: Colors.pink,
-                child: new Text('refresh'),
-              )
-            ],
-        )
-      ),
+                return new Text(
+                    'Naughtify has received ${_numNotifications} notifications ${new String
+                            .fromCharCodes(smiley)}');
+              }),
+          new RaisedButton(
+            onPressed: () {
+              pMethods.sendNotification();
+            },
+            child: new Text('send a notification'),
+          ),
+          new RaisedButton(
+            onPressed: () {
+              setState(() {});
+            },
+            color: Colors.pink,
+            child: new Text('refresh'),
+          )
+        ],
+      )),
       floatingActionButton: new FloatingActionButton(
-          onPressed: _clearNotifications,
+          onPressed: pMethods.clearNotifications,
           tooltip: 'Clear Notifications',
           child: new Icon(Icons.archive)),
     );
-  }
-
-  _clearNotifications() async {
-    try {
-      await platform.invokeMethod('clearNotifications');
-    } on PlatformException catch (e) {
-      print('could not clear');
-    }
-  }
-
-  Future<int> _getNumNotifications() async {
-    int num;
-    try {
-      num = await platform.invokeMethod('getNumNotifications');
-    } on PlatformException catch (e) {
-      num = -1;
-    }
-    return num;
-  }
-
-  _sendNotification() {
-
-    Future<bool> channelNeeded = _notificationChannelNeeded();
-    channelNeeded.then((isNeeded) {
-      if (isNeeded) {
-        if (!hasNotificationChannel) {
-          _createNotificationChannel();
-        }
-        LocalNotifications.createNotification(
-            title: "Testing...", content: "This is just a test notification", id: _notID,
-            androidSettings: new AndroidSettings(channel: channel));
-      } else {
-        LocalNotifications.createNotification(
-            title: "Basic", content: "Notification", id: _notID);
-      }
-      setState(() {
-        _notID++;
-      });
-    });
-  }
-
-  Future<bool> _notificationChannelNeeded() async {
-    return  await platform.invokeMethod("isChannelNeeded");
-  }
-
-  _createNotificationChannel() {
-    print('creating a new channel');
-    LocalNotifications.createAndroidNotificationChannel(channel: channel);
-    hasNotificationChannel = true;
   }
 }
