@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
@@ -22,7 +23,6 @@ public class MainActivity extends FlutterActivity {
 
     private NotificationEventReceiver receiver;
     private NotificationManager manager;
-    //private NotificationSender testSender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,6 @@ public class MainActivity extends FlutterActivity {
         );
 
         manager = new NotificationManager();
-        //testSender = new NotificationSender(this);
 
         receiver = new NotificationEventReceiver();
         IntentFilter filter = new IntentFilter();
@@ -62,23 +61,33 @@ public class MainActivity extends FlutterActivity {
         } else if (call.method.equals("getNumNotifications")) {
             int num = manager.getNum();
             result.success(num);
+        } else if (call.method.equals("isChannelNeeded")) {
+            boolean needed = isChannelNeeded();
+            result.success(needed);
         } else {
             result.notImplemented();
         }
     }
 
-    class NotificationEventReceiver extends BroadcastReceiver {
+    private class NotificationEventReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String eventName = intent.getStringExtra("notification event");
             Log.d("notification", "event receive: " + eventName);
 
-            StatusBarNotification infoGot = (StatusBarNotification) intent.getParcelableExtra("notification info");
+            StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
             if (infoGot != null) {
                 manager.add(infoGot);
                 Log.d("notification got", infoGot.toString());
                 Log.d("notification store", "manager has " + manager.getNum() + " notifications stored");
             }
         }
+    }
+
+    // returns true if android version is at or above 8.0 and
+    // needs notification channeling
+    // note: version code for oreo was not available
+    private boolean isChannelNeeded() {
+        return Build.VERSION.SDK_INT >= 26;
     }
 }
