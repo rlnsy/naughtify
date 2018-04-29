@@ -11,12 +11,10 @@ import android.service.notification.StatusBarNotification;
 @TargetApi(25)
 public class NotificationListener extends NotificationListenerService {
 
-    private UIActionReceiver actionReceiver;
-
     @Override
     public void onCreate() {
         super.onCreate();
-        actionReceiver = new UIActionReceiver();
+        UIActionReceiver actionReceiver = new UIActionReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.rowlindsay.UI");
         registerReceiver(actionReceiver,filter);

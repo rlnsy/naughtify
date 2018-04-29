@@ -22,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  platformMethods pMethods = new platformMethods();
+  PlatformMethods pMethods = new PlatformMethods();
 
   Runes smiley = new Runes('\u{1f626}');
 

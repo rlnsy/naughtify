@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:local_notifications/local_notifications.dart';
 import 'dart:async';
 
-class platformMethods {
+class PlatformMethods {
 
   static const platform = const MethodChannel('com.rowlindsay/notification');
 
@@ -36,8 +36,7 @@ class platformMethods {
   }
 
   sendNotification() {
-
-    Future<bool> channelNeeded = _notificationChannelNeeded();
+    var channelNeeded = _notificationChannelNeeded();
     channelNeeded.then((isNeeded) {
       if (isNeeded) {
         if (!hasNotificationChannel) {

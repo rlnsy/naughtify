@@ -22,7 +22,7 @@ public class MainActivity extends FlutterActivity {
     private static final String NOTIFICATION_CHANNEL = "com.rowlindsay/notification";
 
     private NotificationEventReceiver receiver;
-    private NotificationManager manager;
+    private AndroidNotificationManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,7 @@ public class MainActivity extends FlutterActivity {
                 }
         );
 
-        manager = new NotificationManager();
+        manager = new AndroidNotificationManager();
 
         receiver = new NotificationEventReceiver();
         IntentFilter filter = new IntentFilter();
