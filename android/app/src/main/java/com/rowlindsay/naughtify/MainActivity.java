@@ -5,11 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
-
 import io.flutter.app.FlutterActivity;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -29,6 +29,7 @@ public class MainActivity extends FlutterActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         GeneratedPluginRegistrant.registerWith(this);
 
@@ -91,7 +92,6 @@ public class MainActivity extends FlutterActivity {
             }
 
             if (eventName.equals("notification added") && muteMode) {
-                //TODO: remove vibration and sound when mute is on
                 clearNotifications();
             }
         }
@@ -99,6 +99,14 @@ public class MainActivity extends FlutterActivity {
 
     private void toggleMuteMode() {
         muteMode = !muteMode;
+        AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+        if (muteMode) {
+            audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+            // TODO: figure out how this works with vibrate on silent
+        } else {
+            ((AudioManager) getSystemService(AUDIO_SERVICE)).setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            // TODO: retain user's original setting
+        }
     }
 
     private void clearNotifications() {
