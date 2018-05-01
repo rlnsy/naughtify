@@ -10,7 +10,7 @@ class App extends StatelessWidget {
     return new MaterialApp(
       title: 'Naughtify',
       theme: new ThemeData(
-        primarySwatch: Colors.amber,
+        primarySwatch: Colors.lightGreen,
       ),
       home: new HomePage(),
     );
@@ -24,50 +24,45 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   PlatformMethods pMethods = new PlatformMethods();
 
-  Runes smiley = new Runes('\u{1f626}');
+  bool muted = false;
 
-  int _numNotifications = 0;
-
-  // TODO: redesign UI
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Naughtify'),
+        title: new Text('Naughtify - Basic Prototype'),
       ),
       body: new Center(
           child: new Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          new FutureBuilder<int>(
-              future: pMethods.getNumNotifications(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  _numNotifications = snapshot.data;
-                } else if (snapshot.hasError) {
-                  return new Text('error getting number of notifications');
-                }
-                return new Text(
-                    'Naughtify has received ${_numNotifications} notifications ${new String
-                            .fromCharCodes(smiley)}');
-              }),
           new RaisedButton(
-            onPressed: () {
-              pMethods.sendNotification();
-            },
-            child: new Text('send a notification'),
-          ),
-          new RaisedButton(
-            onPressed: () {
-              setState(() {});
-            },
-            color: Colors.pink,
-            child: new Text('refresh'),
-          )
+              child: new Text("toggle mute"), onPressed: _toggleMute),
+          new Text("muted: ${_isMuted()}"),
         ],
       )),
       floatingActionButton: new FloatingActionButton(
-          onPressed: pMethods.clearNotifications,
+          onPressed: pMethods.sendNotification,
           tooltip: 'Clear Notifications',
-          child: new Icon(Icons.archive)),
+          child: new Icon(Icons.add)),
     );
+  }
+
+  _toggleMute() {
+    bool newValue;
+    if (muted) {
+      newValue = false;
+    } else {
+      newValue = true;
+    }
+    setState(() {
+      muted = newValue;
+    });
+  }
+
+  String _isMuted() {
+    if (muted)
+      return "yes";
+    else
+      return "no";
   }
 }
