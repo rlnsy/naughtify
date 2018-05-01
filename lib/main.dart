@@ -18,35 +18,64 @@ class App extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  _HomePageState createState() => new _HomePageState();
+  _MainState createState() => new _MainState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _MainState extends State<HomePage> {
   PlatformMethods pMethods = new PlatformMethods();
 
   bool muted = false;
 
+  int _numReceieved = 0;
+
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('Naughtify - Basic Prototype'),
-      ),
-      body: new Center(
-          child: new Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          new RaisedButton(
-              child: new Text("toggle mute"), onPressed: _toggleMute),
-          new Text("muted: ${_isMuted()}"),
-        ],
-      )),
-      floatingActionButton: new FloatingActionButton(
-          onPressed: pMethods.sendNotification,
-          tooltip: 'Clear Notifications',
-          child: new Icon(Icons.add)),
-    );
+    return new DefaultTabController(
+        length: 2,
+        child: new Scaffold(
+          appBar: new AppBar(
+              title: new Text('Naughtify - Basic Prototype'),
+              bottom: new TabBar(tabs: [
+                new Tab(icon: new Icon(Icons.directions_bike)),
+                new Tab(icon: new Icon(Icons.directions_car)),
+                // TODO: make icons
+              ])),
+          body: new TabBarView(children: [
+            _buildMainBody(),
+            _buildInfoBody(),
+          ]),
+          floatingActionButton: new FloatingActionButton(
+              onPressed: pMethods.sendNotification,
+              tooltip: 'Clear Notifications',
+              child: new Icon(Icons.add)),
+        ));
   }
 
+  Widget _buildInfoBody() {
+    return new FutureBuilder(
+        future: pMethods.getNumNotifications(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            _numReceieved = snapshot.data;
+          } else if (snapshot.hasError) {
+            return new Text("there was an error getting notification info");
+          }
+          return new Text("notifications received: $_numReceieved");
+        });
+  }
+
+  Widget _buildMainBody() {
+    return new Center(
+        child: new Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        new RaisedButton(
+            child: new Text("toggle mute"), onPressed: _toggleMute),
+        new Text("muted: ${_isMuted()}"),
+      ],
+    ));
+  }
+
+  // TODO: make functional
   _toggleMute() {
     bool newValue;
     if (muted) {
