@@ -11,26 +11,46 @@ import org.json.JSONObject;
 public class AndroidNotificationEncoder {
 
     private JSONArray notificationHistory;
+    private JSONArray currentMuteSession;
 
     public AndroidNotificationEncoder() {
         notificationHistory = new JSONArray();
     }
 
+    // no-op if not in a session
     public void encode(StatusBarNotification sbn) {
-        JSONObject info = new JSONObject();
-        try {
-            info.put("timecode", sbn.getPostTime());
-            info.put("packagename", sbn.getPackageName());
-        } catch (JSONException jse) {
-            Log.d("android encode", "error enncoding to json");
+        if (inSession()) {
+            JSONObject info = new JSONObject();
+            try {
+                info.put("timecode", sbn.getPostTime());
+                info.put("packagename", sbn.getPackageName());
+            } catch (JSONException jse) {
+                Log.d("android encode", "error enncoding to json");
+            }
+            currentMuteSession.put(info);
         }
-        notificationHistory.put(info);
     }
 
     // returns a string that is encoded json - all notifications
     // received in this lifetime
     public String getHistory() {
         return notificationHistory.toString();
+    }
+
+    public void startSession() {
+        if (!inSession())
+            currentMuteSession = new JSONArray();
+    }
+
+    public void endSession() {
+        if (inSession()) {
+            notificationHistory.put(currentMuteSession);
+            currentMuteSession = null;
+        }
+    }
+
+    public boolean inSession() {
+        return currentMuteSession != null;
     }
 
 }

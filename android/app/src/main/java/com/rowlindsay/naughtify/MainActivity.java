@@ -107,11 +107,15 @@ public class MainActivity extends FlutterActivity {
         muteMode = !muteMode;
         AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (muteMode) {
+            // mute mode turned on
             audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+            encoder.startSession();
             // TODO: figure out how this works with vibrate on silent
         } else {
-            ((AudioManager) getSystemService(AUDIO_SERVICE)).setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            // mute mode turned off
+            audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
             // TODO: retain user's original setting
+            encoder.endSession();
         }
     }
 

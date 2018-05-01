@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'platform_comm.dart';
+import 'notification_management.dart';
 
 void main() => runApp(new App());
 
@@ -26,6 +27,7 @@ class _MainState extends State<HomePage> {
 
   bool muted = false;
 
+  NotificationManager manager = new NotificationManager(new PlatformMethods());
   Text notificationHistory = new Text("");
 
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class _MainState extends State<HomePage> {
 
   Widget _buildInfoBody() {
     return new FutureBuilder(
-        future: pMethods.getNotifications(),
+        future: manager.getNotifications(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             notificationHistory = new Text(snapshot.data);
