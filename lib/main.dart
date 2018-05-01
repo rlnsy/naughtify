@@ -26,7 +26,7 @@ class _MainState extends State<HomePage> {
 
   bool muted = false;
 
-  int _numReceieved = 0;
+  Text notificationHistory = new Text("");
 
   Widget build(BuildContext context) {
     return new DefaultTabController(
@@ -37,7 +37,6 @@ class _MainState extends State<HomePage> {
               bottom: new TabBar(tabs: [
                 new Tab(icon: new Icon(Icons.do_not_disturb_alt)),
                 new Tab(icon: new Icon(Icons.timeline)),
-                // TODO: make icons
               ])),
           body: new TabBarView(children: [
             _buildMainBody(),
@@ -52,14 +51,14 @@ class _MainState extends State<HomePage> {
 
   Widget _buildInfoBody() {
     return new FutureBuilder(
-        future: pMethods.getNumNotifications(),
+        future: pMethods.getNotifications(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            _numReceieved = snapshot.data;
+            notificationHistory = new Text(snapshot.data);
           } else if (snapshot.hasError) {
             return new Text("there was an error getting notification info");
           }
-          return new Text("notifications received: $_numReceieved");
+          return notificationHistory;
         });
   }
 

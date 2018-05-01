@@ -25,6 +25,7 @@ public class MainActivity extends FlutterActivity {
 
     // client state information
     private AndroidNotificationManager manager;
+    private AndroidNotificationEncoder encoder;
     private boolean muteMode = false;
 
     @Override
@@ -43,6 +44,7 @@ public class MainActivity extends FlutterActivity {
         );
 
         manager = new AndroidNotificationManager();
+        encoder = new AndroidNotificationEncoder();
 
         receiver = new NotificationEventReceiver();
         IntentFilter filter = new IntentFilter();
@@ -69,6 +71,8 @@ public class MainActivity extends FlutterActivity {
         } else if (call.method.equals("toggleMuteMode")) {
             toggleMuteMode();
             result.success(muteMode);
+        } else if (call.method.equals("getNotifications")) {
+            result.success(encoder.getHistory());
         } else {
             result.notImplemented();
         }
@@ -87,6 +91,8 @@ public class MainActivity extends FlutterActivity {
             StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
             if (infoGot != null) {
                 manager.add(infoGot);
+                encoder.encode(infoGot);
+
                 Log.d("notification got", infoGot.toString());
                 Log.d("notification store", "manager has " + manager.getNum() + " notifications stored");
             }
