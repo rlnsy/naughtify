@@ -17,6 +17,16 @@ class PlatformMethods {
     importance: AndroidNotificationChannelImportance.HIGH,
   );
 
+  Future<bool> _notificationChannelNeeded() async {
+    return await platform.invokeMethod("isChannelNeeded");
+  }
+
+  _createNotificationChannel() {
+    print('creating a new channel');
+    LocalNotifications.createAndroidNotificationChannel(channel: _channel);
+    hasNotificationChannel = true;
+  }
+
   clearNotifications() async {
     try {
       await platform.invokeMethod('clearNotifications');
@@ -53,13 +63,7 @@ class PlatformMethods {
     });
   }
 
-  Future<bool> _notificationChannelNeeded() async {
-    return await platform.invokeMethod("isChannelNeeded");
-  }
-
-  _createNotificationChannel() {
-    print('creating a new channel');
-    LocalNotifications.createAndroidNotificationChannel(channel: _channel);
-    hasNotificationChannel = true;
+  toggleMuteMode() {
+    platform.invokeMethod("toggleMuteMode");
   }
 }

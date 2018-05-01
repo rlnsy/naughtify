@@ -75,7 +75,6 @@ class _MainState extends State<HomePage> {
     ));
   }
 
-  // TODO: make functional
   _toggleMute() {
     bool newValue;
     if (muted) {
@@ -83,6 +82,7 @@ class _MainState extends State<HomePage> {
     } else {
       newValue = true;
     }
+    pMethods.toggleMuteMode();
     setState(() {
       muted = newValue;
     });

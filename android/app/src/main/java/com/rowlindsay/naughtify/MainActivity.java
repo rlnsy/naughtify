@@ -22,7 +22,10 @@ public class MainActivity extends FlutterActivity {
     private static final String NOTIFICATION_CHANNEL = "com.rowlindsay/notification";
 
     private NotificationEventReceiver receiver;
+
+    // client state information
     private AndroidNotificationManager manager;
+    private boolean muteMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +57,7 @@ public class MainActivity extends FlutterActivity {
 
     private void proceessMethodCallFromUI(MethodCall call, Result result) {
         if (call.method.equals("clearNotifications")) {
-            Intent i = new Intent("com.rowlindsay.UI");
-            i.putExtra("uicommand", "clearNotifications");
-            sendBroadcast(i);
+            clearNotifications();
             result.success("sent clear request to notification service");
         } else if (call.method.equals("getNumNotifications")) {
             int num = manager.getNum();
@@ -64,6 +65,9 @@ public class MainActivity extends FlutterActivity {
         } else if (call.method.equals("isChannelNeeded")) {
             boolean needed = isChannelNeeded();
             result.success(needed);
+        } else if (call.method.equals("toggleMuteMode")) {
+            toggleMuteMode();
+            result.success(muteMode);
         } else {
             result.notImplemented();
         }
@@ -73,6 +77,10 @@ public class MainActivity extends FlutterActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String eventName = intent.getStringExtra("notification event");
+            if (eventName == null) {
+                eventName = "unrecognized notification event";
+            }
+
             Log.d("notification", "event receive: " + eventName);
 
             StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
@@ -81,7 +89,22 @@ public class MainActivity extends FlutterActivity {
                 Log.d("notification got", infoGot.toString());
                 Log.d("notification store", "manager has " + manager.getNum() + " notifications stored");
             }
+
+            if (eventName.equals("notification added") && muteMode) {
+                //TODO: remove vibration and sound when mute is on
+                clearNotifications();
+            }
         }
+    }
+
+    private void toggleMuteMode() {
+        muteMode = !muteMode;
+    }
+
+    private void clearNotifications() {
+        Intent i = new Intent("com.rowlindsay.UI");
+        i.putExtra("uicommand", "clearNotifications");
+        sendBroadcast(i);
     }
 
     // returns true if android version is at or above 8.0 and

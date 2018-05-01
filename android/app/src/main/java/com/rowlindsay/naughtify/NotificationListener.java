@@ -29,9 +29,6 @@ public class NotificationListener extends NotificationListenerService {
         Intent notificationSend = new Intent("com.rowlindsay.NOTIFICATION_LISTEN");
         notificationSend.putExtra("notification info",sbn);
         sendBroadcast(notificationSend);
-
-        NotificationListener.this.cancelAllNotifications();
-        //TODO: remove vibration and sound
     }
 
     @Override
