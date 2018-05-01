@@ -35,8 +35,8 @@ class _MainState extends State<HomePage> {
           appBar: new AppBar(
               title: new Text('Naughtify - Basic Prototype'),
               bottom: new TabBar(tabs: [
-                new Tab(icon: new Icon(Icons.directions_bike)),
-                new Tab(icon: new Icon(Icons.directions_car)),
+                new Tab(icon: new Icon(Icons.do_not_disturb_alt)),
+                new Tab(icon: new Icon(Icons.timeline)),
                 // TODO: make icons
               ])),
           body: new TabBarView(children: [
