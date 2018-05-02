@@ -14,22 +14,34 @@ class App extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.lightGreen,
       ),
-      home: new HomePage(),
+      home: new HomePage(
+          storage: new NotificationStorage(), pMethods: new PlatformMethods()),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
+  final NotificationStorage storage;
+  final PlatformMethods pMethods;
+  NotificationManager manager;
+
+  HomePage({Key key, this.storage, this.pMethods}) : super(key: key) {
+    manager = new NotificationManager(new PlatformMethods(), storage);
+  }
+
   MainState createState() => new MainState();
 }
 
 class MainState extends State<HomePage> {
-  PlatformMethods pMethods = new PlatformMethods();
-
   bool muted = false;
 
-  NotificationManager manager = new NotificationManager(new PlatformMethods());
   Text notificationHistory = new Text("");
+
+  @override
+  void initState() {
+    super.initState();
+    widget.manager.decodeFromFile();
+  }
 
   Widget build(BuildContext context) {
     return new DefaultTabController(
@@ -46,7 +58,7 @@ class MainState extends State<HomePage> {
             _buildInfo(),
           ]),
           floatingActionButton: new FloatingActionButton(
-              onPressed: pMethods.sendNotification,
+              onPressed: widget.pMethods.sendNotification,
               tooltip: 'Clear Notifications',
               child: new Icon(Icons.add)),
         ));
@@ -71,7 +83,7 @@ class MainState extends State<HomePage> {
     } else {
       newValue = true;
     }
-    pMethods.toggleMuteMode();
+    widget.pMethods.toggleMuteMode();
     setState(() {
       muted = newValue;
     });
@@ -90,7 +102,7 @@ class MainState extends State<HomePage> {
 
   Widget _buildInfo() {
     return new FutureBuilder(
-        future: manager.fetchNotifications(),
+        future: widget.manager.decodeNewNotifications(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             _infoState = _buildList();
@@ -107,10 +119,10 @@ class MainState extends State<HomePage> {
         itemBuilder: (context, i) {
           if (i.isOdd) return new Divider();
           final index = i ~/ 2;
-          if (index >= manager.getNumSessions()) {
+          if (index >= widget.manager.getNumSessions()) {
             return new Container();
           } else {
-            return _buildSessionView(manager.getSessions()[index]);
+            return _buildSessionView(widget.manager.getSessions()[index]);
           }
         });
   }
