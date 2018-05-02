@@ -152,7 +152,7 @@ class MainState extends State<HomePage> {
   String convertTime(int millis) {
     DateTime date = new DateTime.fromMillisecondsSinceEpoch(millis);
 
-    var format = new DateFormat("Hm");
+    var format = new DateFormat("Hms");
     var timeString = format.format(date);
 
     return timeString;
