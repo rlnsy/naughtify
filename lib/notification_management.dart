@@ -7,25 +7,36 @@ class NotificationManager {
 
   PlatformMethods pMethods;
 
-  List<Notification> _notifications = new List<Notification>();
+  List<Session> _sessions = new List<Session>();
 
   NotificationManager(this.pMethods);
 
   Future<String> fetchNotifications() async {
     String info = await pMethods.fetchNotifications();
     List sessions = json.decode(info);
-    for (Map session in sessions) {
-      List notifications = session['notifications'];
+    for (Map sessionInfo in sessions) {
+      Session session = new Session();
+      List notifications = sessionInfo['notifications'];
       for (Map notificationInfo in notifications) {
         var notification = Notification.fromJSON(notificationInfo);
-        _notifications.add(notification);
+        session.add(notification);
+        // TODO: sort duplicates and by time code
       }
+      _sessions.add(session);
     }
     return info;
   }
 
-  int getNum() {
-    return _notifications.length;
+  int getNumNotifications() {
+    int num = 0;
+    for (Session s in _sessions) {
+      num += s.notifications.length;
+    }
+    return num;
+  }
+
+  int getNumSessions() {
+    return _sessions.length;
   }
 
 
@@ -52,27 +63,43 @@ class NotificationManager {
       itemBuilder: (context, i) {
         if (i.isOdd) return new Divider();
         final index = i ~/ 2;
-        if (index >= getNum()) {
+        if (index >= getNumSessions()) {
           return new Container();
         } else {
-          return _buildSessionView(_notifications[index]);
+          return _buildSessionView(_sessions[index]);
         }
       }
     );
   }
 
-  Widget _buildSessionView(Notification n) {
-    return new Text('this is single session view');
-    // TODO: this
+  Widget _buildSessionView(Session s) {
+    return new Column(
+      children:_buildNotificationViews(s),
+    );
   }
+
+  List<Widget> _buildNotificationViews(Session s) {
+    List<Widget> views = new List<Widget>();
+    for (Notification n in s.notifications) {
+      views.add(_buildNotificationView(n));
+    }
+    return views;
+  }
+
+  Widget _buildNotificationView(Notification n) {
+    return new Text('${n.timeCode} - ${n.packageName}');
+  }
+
 }
 
 // JSON STUFF
 
 class Session {
-  final List<Notification> notifications;
+  final List<Notification> notifications = new List<Notification>();  
 
-  Session(this.notifications);
+  add(Notification n) {
+    notifications.add(n);
+  }
 }
 
 class Notification {
