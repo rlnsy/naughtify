@@ -7,12 +7,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Calendar;
+
 @TargetApi(22)
 public class AndroidNotificationEncoder {
 
+    // TODO: handle destruction by ending session and writing to disk
+
     private JSONArray notificationHistory;
 
-    private JSONArray currentMuteSession;
+    private JSONObject currentMuteSession;
+    private JSONArray sessionNotifications;
 
     public AndroidNotificationEncoder() {
         notificationHistory = new JSONArray();
@@ -28,7 +33,7 @@ public class AndroidNotificationEncoder {
             } catch (JSONException jse) {
                 Log.d("android encode", "error enncoding to json");
             }
-            currentMuteSession.put(info);
+            sessionNotifications.put(info);
         }
     }
 
@@ -40,21 +45,32 @@ public class AndroidNotificationEncoder {
 
     public void startSession() {
         if (!inSession()) {
-            currentMuteSession = new JSONArray();
+            currentMuteSession = new JSONObject();
+            try {
+                currentMuteSession.put("starttime", getTime());
+            } catch (JSONException jse) {
+                Log.d("android encode", "error encoding start time");
+            }
+            sessionNotifications = new JSONArray();
         }
     }
 
     public void endSession() {
         if (inSession()) {
-            JSONObject session = new JSONObject();
             try {
-                session.put("notifications", currentMuteSession);
+                currentMuteSession.put("endtime",getTime());
+                currentMuteSession.put("notifications", sessionNotifications);
             } catch (JSONException jse) {
                 Log.d("android encode", "error enncoding to json");
             }
-            notificationHistory.put(session);
+            notificationHistory.put(currentMuteSession);
             currentMuteSession = null;
+            sessionNotifications = null;
         }
+    }
+
+    private String getTime() {
+        return Calendar.getInstance().getTime().toString();
     }
 
     public boolean inSession() {

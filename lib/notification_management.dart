@@ -18,7 +18,7 @@ class NotificationManager {
     String info = await pMethods.fetchNotifications();
     List sessions = json.decode(info);
     for (Map sessionInfo in sessions) {
-      Session session = new Session();
+      Session session = new Session(sessionInfo["starttime"],sessionInfo["endtime"]);
       List notifications = sessionInfo['notifications'];
       for (Map notificationInfo in notifications) {
         var notification = NotificationEntry.fromJSON(notificationInfo);
@@ -73,6 +73,10 @@ class Session {
 
   int newest = 0;
 
+  String start, end;
+
+  Session(this.start,this.end);
+
   add(NotificationEntry n) {
     int newer = 0;
     for (NotificationEntry other in notifications) {
@@ -94,6 +98,14 @@ class Session {
 
   bool newerThan(Session other) {
     return newest > other.newest;
+  }
+
+  String getStartTime() {
+    return start;
+  }
+
+  String getEndTime() {
+    return end;
   }
 }
 

@@ -136,6 +136,8 @@ class MainState extends State<HomePage> {
 
   List<Widget> _buildNotificationViews(Session s) {
     List<Widget> views = new List<Widget>();
+    views.add(new Text('Session: ${s.getStartTime()} to ${s.getEndTime()}'));
+    views.add(new Text('Notifications receieved'));
     for (NotificationEntry n in s.notifications) {
       views.add(_buildNotificationView(n));
     }
