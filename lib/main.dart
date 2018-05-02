@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'platform_comm.dart';
 import 'notification_management.dart';
+import 'package:intl/intl.dart';
 
 void main() => runApp(new App());
 
@@ -145,6 +146,15 @@ class MainState extends State<HomePage> {
   }
 
   Widget _buildNotificationView(NotificationEntry n) {
-    return new Text('${n.timeCode} - ${n.packageName}');
+    return new Text('${convertTime(n.timeCode)} : ${n.packageName}');
+  }
+
+  String convertTime(int millis) {
+    DateTime date = new DateTime.fromMillisecondsSinceEpoch(millis);
+
+    var format = new DateFormat("Hm");
+    var timeString = format.format(date);
+
+    return timeString;
   }
 }
