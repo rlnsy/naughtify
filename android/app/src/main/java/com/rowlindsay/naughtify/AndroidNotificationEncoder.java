@@ -38,13 +38,20 @@ public class AndroidNotificationEncoder {
     }
 
     public void startSession() {
-        if (!inSession())
+        if (!inSession()) {
             currentMuteSession = new JSONArray();
+        }
     }
 
     public void endSession() {
         if (inSession()) {
-            notificationHistory.put(currentMuteSession);
+            JSONObject session = new JSONObject();
+            try {
+                session.put("notifications", currentMuteSession);
+            } catch (JSONException jse) {
+                Log.d("android encode", "error enncoding to json");
+            }
+            notificationHistory.put(session);
             currentMuteSession = null;
         }
     }
