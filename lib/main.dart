@@ -83,7 +83,6 @@ class MainState extends State<HomePage> {
       return "no";
   }
 
-
   // VIEW STUFF
 
   Widget _infoState = new Container();
@@ -112,40 +111,38 @@ class MainState extends State<HomePage> {
           } else {
             return _buildSessionView(manager.getSessions()[index]);
           }
-        }
-    );
+        });
   }
 
   Widget _buildSessionView(Session s) {
-    return new Column(
-      children:_buildNotificationViews(s),
+    return new GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+          return new Scaffold(
+            appBar: new AppBar(
+              title: new Text('Sessions Information'),
+            ),
+            body: new Column(
+              children: _buildNotificationViews(s),
+            ),
+          );
+        }));
+      },
+      child: new Column(
+        children: _buildNotificationViews(s),
+      ),
     );
   }
 
   List<Widget> _buildNotificationViews(Session s) {
     List<Widget> views = new List<Widget>();
-    for (NotificationInfo n in s.notifications) {
+    for (NotificationEntry n in s.notifications) {
       views.add(_buildNotificationView(n));
     }
     return views;
   }
 
-  Widget _buildNotificationView(NotificationInfo n) {
-    return new GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          new MaterialPageRoute(
-              builder: (context) {
-                return new Scaffold(
-                  appBar: new AppBar(
-                    title: new Text('Sessions Information'),
-                  ),
-                  body: new Text('${n.timeCode} - ${n.packageName}'),
-                );
-              })
-        );
-      },
-      child: new Text('${n.timeCode} - ${n.packageName}'),
-    );
+  Widget _buildNotificationView(NotificationEntry n) {
+    return new Text('${n.timeCode} - ${n.packageName}');
   }
 }

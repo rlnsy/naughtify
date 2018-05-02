@@ -1,17 +1,18 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'platform_comm.dart';
 import 'dart:convert';
-import 'main.dart';
+import 'dart:math';
+
 
 class NotificationManager {
-
 
   PlatformMethods pMethods;
 
   List<Session> _sessions = new List<Session>();
 
   NotificationManager(this.pMethods);
+
+  //TODO: test for jank and maybe move to separate isolate
 
   Future<String> fetchNotifications() async {
     String info = await pMethods.fetchNotifications();
@@ -20,13 +21,23 @@ class NotificationManager {
       Session session = new Session();
       List notifications = sessionInfo['notifications'];
       for (Map notificationInfo in notifications) {
-        var notification = NotificationInfo.fromJSON(notificationInfo);
-        session.add(notification);
-        // TODO: sort duplicates and by time code
+        var notification = NotificationEntry.fromJSON(notificationInfo);
+        if (!_contains(notification))
+          session.add(notification);
       }
-      _sessions.add(session);
+      if (session.length() > 0)
+        _addSession(session);
     }
     return info;
+  }
+
+  _addSession(Session s) {
+    int newerSessions = 0;
+    for (Session other in _sessions) {
+      if (other.newerThan(s))
+        newerSessions++;
+    }
+    _sessions.insert(newerSessions, s);
   }
 
   int getNumNotifications() {
@@ -45,25 +56,67 @@ class NotificationManager {
     return _sessions;
   }
 
+  bool _contains(NotificationEntry n) {
+    for (Session s in _sessions) {
+      if (s.contains(n))
+        return true;
+    }
+    return false;
+  }
+
 }
 
 // JSON STUFF
 
 class Session {
-  final List<NotificationInfo> notifications = new List<NotificationInfo>();
+  final List<NotificationEntry> notifications = new List<NotificationEntry>();
 
-  add(NotificationInfo n) {
-    notifications.add(n);
+  int newest = 0;
+
+  add(NotificationEntry n) {
+    int newer = 0;
+    for (NotificationEntry other in notifications) {
+      if (other.timeCode > n.timeCode)
+        newer++;
+    }
+    notifications.insert(newer, n);
+    if (newer == 0)
+      newest = n.timeCode;
+  }
+
+  bool contains(NotificationEntry n) {
+    return notifications.contains(n);
+  }
+
+  int length() {
+    return notifications.length;
+  }
+
+  bool newerThan(Session other) {
+    return newest > other.newest;
   }
 }
 
-class NotificationInfo {
+class NotificationEntry {
   final String packageName;
   final int timeCode;
 
-  NotificationInfo(this.packageName, this.timeCode);
+  NotificationEntry(this.packageName, this.timeCode);
 
-  NotificationInfo.fromJSON(Map<String, dynamic> jsonObject)
+  NotificationEntry.fromJSON(Map<String, dynamic> jsonObject)
     : packageName = jsonObject['packagename'],
       timeCode = jsonObject['timecode'];
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is NotificationEntry &&
+              runtimeType == other.runtimeType &&
+              packageName == other.packageName &&
+              timeCode == other.timeCode && pow((other.timeCode - timeCode),2) <= 100; // Filter out close notifs
+
+  @override
+  int get hashCode =>
+      packageName.hashCode ^
+      timeCode.hashCode;
 }
