@@ -19,10 +19,10 @@ class App extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  _MainState createState() => new _MainState();
+  MainState createState() => new MainState();
 }
 
-class _MainState extends State<HomePage> {
+class MainState extends State<HomePage> {
   PlatformMethods pMethods = new PlatformMethods();
 
   bool muted = false;
@@ -42,17 +42,13 @@ class _MainState extends State<HomePage> {
               ])),
           body: new TabBarView(children: [
             _buildMainBody(),
-            _buildInfoBody(),
+            _buildInfo(),
           ]),
           floatingActionButton: new FloatingActionButton(
               onPressed: pMethods.sendNotification,
               tooltip: 'Clear Notifications',
               child: new Icon(Icons.add)),
         ));
-  }
-
-  Widget _buildInfoBody() {
-    return manager.buildInfo();
   }
 
   Widget _buildMainBody() {
@@ -85,5 +81,71 @@ class _MainState extends State<HomePage> {
       return "yes";
     else
       return "no";
+  }
+
+
+  // VIEW STUFF
+
+  Widget _infoState = new Container();
+
+  Widget _buildInfo() {
+    return new FutureBuilder(
+        future: manager.fetchNotifications(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            _infoState = _buildList();
+          } else if (snapshot.hasError) {
+            return new Text("there was an error getting notification info");
+          }
+          return _infoState;
+        });
+  }
+
+  Widget _buildList() {
+    return new ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemBuilder: (context, i) {
+          if (i.isOdd) return new Divider();
+          final index = i ~/ 2;
+          if (index >= manager.getNumSessions()) {
+            return new Container();
+          } else {
+            return _buildSessionView(manager.getSessions()[index]);
+          }
+        }
+    );
+  }
+
+  Widget _buildSessionView(Session s) {
+    return new Column(
+      children:_buildNotificationViews(s),
+    );
+  }
+
+  List<Widget> _buildNotificationViews(Session s) {
+    List<Widget> views = new List<Widget>();
+    for (NotificationInfo n in s.notifications) {
+      views.add(_buildNotificationView(n));
+    }
+    return views;
+  }
+
+  Widget _buildNotificationView(NotificationInfo n) {
+    return new GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          new MaterialPageRoute(
+              builder: (context) {
+                return new Scaffold(
+                  appBar: new AppBar(
+                    title: new Text('Sessions Information'),
+                  ),
+                  body: new Text('${n.timeCode} - ${n.packageName}'),
+                );
+              })
+        );
+      },
+      child: new Text('${n.timeCode} - ${n.packageName}'),
+    );
   }
 }
