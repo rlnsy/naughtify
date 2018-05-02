@@ -78,7 +78,7 @@ class MainState extends State<HomePage> {
 
   String _isMuted() {
     if (muted)
-      return "yes";
+      return "yes - currently listening for notifications";
     else
       return "no";
   }

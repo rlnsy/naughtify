@@ -11,6 +11,7 @@ import org.json.JSONObject;
 public class AndroidNotificationEncoder {
 
     private JSONArray notificationHistory;
+
     private JSONArray currentMuteSession;
 
     public AndroidNotificationEncoder() {

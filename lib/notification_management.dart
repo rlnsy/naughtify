@@ -113,7 +113,8 @@ class NotificationEntry {
           other is NotificationEntry &&
               runtimeType == other.runtimeType &&
               packageName == other.packageName &&
-              timeCode == other.timeCode && pow((other.timeCode - timeCode),2) <= 100; // Filter out close notifs
+              sqrt(pow((other.timeCode - timeCode),2)) < 100; // Filter out close notifs
+              //TODO: fix this
 
   @override
   int get hashCode =>
