@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'platform_comm.dart';
+import 'notification_management.dart';
 
 void main() => runApp(new App());
 
@@ -26,7 +27,8 @@ class _MainState extends State<HomePage> {
 
   bool muted = false;
 
-  int _numReceieved = 0;
+  NotificationManager manager = new NotificationManager(new PlatformMethods());
+  Text notificationHistory = new Text("");
 
   Widget build(BuildContext context) {
     return new DefaultTabController(
@@ -35,9 +37,8 @@ class _MainState extends State<HomePage> {
           appBar: new AppBar(
               title: new Text('Naughtify - Basic Prototype'),
               bottom: new TabBar(tabs: [
-                new Tab(icon: new Icon(Icons.directions_bike)),
-                new Tab(icon: new Icon(Icons.directions_car)),
-                // TODO: make icons
+                new Tab(icon: new Icon(Icons.do_not_disturb_alt)),
+                new Tab(icon: new Icon(Icons.timeline)),
               ])),
           body: new TabBarView(children: [
             _buildMainBody(),
@@ -51,16 +52,7 @@ class _MainState extends State<HomePage> {
   }
 
   Widget _buildInfoBody() {
-    return new FutureBuilder(
-        future: pMethods.getNumNotifications(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            _numReceieved = snapshot.data;
-          } else if (snapshot.hasError) {
-            return new Text("there was an error getting notification info");
-          }
-          return new Text("notifications received: $_numReceieved");
-        });
+    return manager.buildInfo();
   }
 
   Widget _buildMainBody() {

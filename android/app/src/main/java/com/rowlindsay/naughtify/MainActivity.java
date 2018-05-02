@@ -24,7 +24,7 @@ public class MainActivity extends FlutterActivity {
     private NotificationEventReceiver receiver;
 
     // client state information
-    private AndroidNotificationManager manager;
+    private AndroidNotificationEncoder encoder;
     private boolean muteMode = false;
 
     @Override
@@ -42,7 +42,7 @@ public class MainActivity extends FlutterActivity {
                 }
         );
 
-        manager = new AndroidNotificationManager();
+        encoder = new AndroidNotificationEncoder();
 
         receiver = new NotificationEventReceiver();
         IntentFilter filter = new IntentFilter();
@@ -60,15 +60,14 @@ public class MainActivity extends FlutterActivity {
         if (call.method.equals("clearNotifications")) {
             clearNotifications();
             result.success("sent clear request to notification service");
-        } else if (call.method.equals("getNumNotifications")) {
-            int num = manager.getNum();
-            result.success(num);
         } else if (call.method.equals("isChannelNeeded")) {
             boolean needed = isChannelNeeded();
             result.success(needed);
         } else if (call.method.equals("toggleMuteMode")) {
             toggleMuteMode();
             result.success(muteMode);
+        } else if (call.method.equals("getNotifications")) {
+            result.success(encoder.getHistory());
         } else {
             result.notImplemented();
         }
@@ -85,15 +84,11 @@ public class MainActivity extends FlutterActivity {
             Log.d("notification", "event receive: " + eventName);
 
             StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
-            if (infoGot != null) {
-                manager.add(infoGot);
-                Log.d("notification got", infoGot.toString());
-                Log.d("notification store", "manager has " + manager.getNum() + " notifications stored");
-            }
+            if (infoGot != null)
+                encoder.encode(infoGot);
 
-            if (eventName.equals("notification added") && muteMode) {
+            if (eventName.equals("notification added") && muteMode)
                 clearNotifications();
-            }
         }
     }
 
@@ -101,11 +96,15 @@ public class MainActivity extends FlutterActivity {
         muteMode = !muteMode;
         AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (muteMode) {
+            // mute mode turned on
             audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+            encoder.startSession();
             // TODO: figure out how this works with vibrate on silent
         } else {
-            ((AudioManager) getSystemService(AUDIO_SERVICE)).setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            // mute mode turned off
+            audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
             // TODO: retain user's original setting
+            encoder.endSession();
         }
     }
 
