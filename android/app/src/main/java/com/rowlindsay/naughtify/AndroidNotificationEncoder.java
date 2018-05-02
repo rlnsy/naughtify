@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@TargetApi(25)
+@TargetApi(22)
 public class AndroidNotificationEncoder {
 
     private JSONArray notificationHistory;

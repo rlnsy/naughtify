@@ -52,16 +52,7 @@ class _MainState extends State<HomePage> {
   }
 
   Widget _buildInfoBody() {
-    return new FutureBuilder(
-        future: manager.getNotifications(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            notificationHistory = new Text(snapshot.data);
-          } else if (snapshot.hasError) {
-            return new Text("there was an error getting notification info");
-          }
-          return notificationHistory;
-        });
+    return manager.buildInfo();
   }
 
   Widget _buildMainBody() {

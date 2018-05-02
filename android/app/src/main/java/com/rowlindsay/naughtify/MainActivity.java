@@ -24,7 +24,6 @@ public class MainActivity extends FlutterActivity {
     private NotificationEventReceiver receiver;
 
     // client state information
-    private AndroidNotificationManager manager;
     private AndroidNotificationEncoder encoder;
     private boolean muteMode = false;
 
@@ -43,7 +42,6 @@ public class MainActivity extends FlutterActivity {
                 }
         );
 
-        manager = new AndroidNotificationManager();
         encoder = new AndroidNotificationEncoder();
 
         receiver = new NotificationEventReceiver();
@@ -62,9 +60,6 @@ public class MainActivity extends FlutterActivity {
         if (call.method.equals("clearNotifications")) {
             clearNotifications();
             result.success("sent clear request to notification service");
-        } else if (call.method.equals("getNumNotifications")) {
-            int num = manager.getNum();
-            result.success(num);
         } else if (call.method.equals("isChannelNeeded")) {
             boolean needed = isChannelNeeded();
             result.success(needed);
@@ -89,17 +84,11 @@ public class MainActivity extends FlutterActivity {
             Log.d("notification", "event receive: " + eventName);
 
             StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
-            if (infoGot != null) {
-                manager.add(infoGot);
+            if (infoGot != null)
                 encoder.encode(infoGot);
 
-                Log.d("notification got", infoGot.toString());
-                Log.d("notification store", "manager has " + manager.getNum() + " notifications stored");
-            }
-
-            if (eventName.equals("notification added") && muteMode) {
+            if (eventName.equals("notification added") && muteMode)
                 clearNotifications();
-            }
         }
     }
 

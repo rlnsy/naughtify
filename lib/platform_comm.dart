@@ -35,14 +35,6 @@ class PlatformMethods {
     }
   }
 
-  Future<int> getNumNotifications() async {
-    try {
-      return await platform.invokeMethod('getNumNotifications');
-    } on PlatformException catch (e) {
-      return -1;
-    }
-  }
-
   Future<String> getNotifications() async {
     try {
       return await platform.invokeMethod('getNotifications');
