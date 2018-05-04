@@ -113,7 +113,6 @@ class MainState extends State<HomePage> {
           future: widget.manager.decodeFromFile(),
           builder: (context,snapshot) {
             if (snapshot.hasData) {
-              print('decode has data, returning main view');
               return mainView;
             } else if (snapshot.hasError) {
               return new Text('error loading from file');

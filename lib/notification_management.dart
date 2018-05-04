@@ -13,12 +13,9 @@ class NotificationManager {
 
   List<Session> _sessions = new List<Session>();
 
-  // TODO: clean up whole class
+  // TODO: document
 
-  NotificationManager(this.pMethods,this.storage) {
-    // temporary:
-    //storage.writeInfo('[{"starttime": "1", "endtime": "2", "notifications": [{"timecode": 3,"packagename": "com.test"}]}]',1);
-  }
+  NotificationManager(this.pMethods,this.storage);
 
   bool _isLoaded = false;
 
@@ -36,15 +33,9 @@ class NotificationManager {
 
   Future<String> decodeFromFile() async {
     if (!_isLoaded) {
-      print('decoding history from file...');
       String info = await storage.readInfo();
-      print('info read from file: $info');
-      try {
-        _decode(info);
-      } catch (e) {
-        print('file decode: $e');
-        print(info);
-      }
+      _decode(info);
+      // TODO: exceptions
       _isLoaded = true;
       return info;
     } else {
@@ -52,18 +43,15 @@ class NotificationManager {
     }
   }
 
-  int writes = 1;
-
   Future<File> writeToFile() async {
-    writes++;
-    print('(write $writes) writing to file...');
     String encodedInfo = '[${_encodeSessions()}]';
-    print('(write $writes) encoded info: ${encodedInfo}');
-    return await storage.writeInfo(encodedInfo,writes);
+    return await storage.writeInfo(encodedInfo);
   }
 
+
+  // MANUAL ENCODING
+
   String _encodeSessions({int index = 0}) {
-    print('(write $writes) - encoding sessions');
     if (index >= _sessions.length) {
       return "";
     } else if (index >= 1) {
@@ -74,7 +62,6 @@ class NotificationManager {
   }
 
   String encodeSession(Session s) {
-    print('(write $writes) - - session encode');
     return '{"starttime": "${s.getStartTime()}","endtime": "${s.getEndTime()}","notifications": [${_encodeNotifications(s)}]}';
   }
 
@@ -94,9 +81,9 @@ class NotificationManager {
   }
 
   _decode(String info) {
+    // DEPENDENT ON JSON FORMAT
     List sessions;
     sessions = json.decode(info);
-    print("decode: ${sessions.length} sessions found");
     for (Map sessionInfo in sessions) {
       Session session = new Session(sessionInfo["starttime"],sessionInfo["endtime"]);
       List notifications = sessionInfo['notifications'];
@@ -145,7 +132,7 @@ class NotificationManager {
 
 }
 
-// JSON STUFF
+// JSON (MODELS)
 
 class Session {
 
@@ -221,6 +208,8 @@ class NotificationEntry {
       timeCode.hashCode;
 }
 
+// STORAGE
+
 class NotificationStorage {
 
   Future<String> get _localPath async {
@@ -244,17 +233,8 @@ class NotificationStorage {
     }
   }
 
-  Future<File> writeInfo(String info, int writes) async {
+  Future<File> writeInfo(String info) async {
     final file = await _localFile;
-
-
-    // TODO: encode
-
-
-    // Write the file
-    print('(write $writes) file write: info = $info');
-    var testFile = await file.writeAsString(info);
-    print('(write $writes) file test: contents = ${await testFile.readAsString()}');
-    return testFile;
+    return await file.writeAsString(info);
   }
 }
