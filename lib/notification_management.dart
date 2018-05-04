@@ -33,6 +33,11 @@ class NotificationManager {
         newerSessions++;
     }
     _sessions.insert(newerSessions, s);
+
+    //// FILE WRITE!! ////
+    writeToFile();
+    //// !!!!!!!!!!!! ////
+
   }
 
   int getNumNotifications() {
