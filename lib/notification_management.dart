@@ -4,18 +4,21 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-
+import 'package:intl/intl.dart';
 
 class NotificationManager {
 
   PlatformMethods pMethods;
   NotificationStorage storage;
+  JSONEncoder _encoder;
 
   List<Session> _sessions = new List<Session>();
 
   // TODO: document
 
-  NotificationManager(this.pMethods,this.storage);
+  NotificationManager(this.pMethods,this.storage) {
+    _encoder = new JSONEncoder(this);
+  }
 
   bool _isLoaded = false;
 
@@ -23,81 +26,7 @@ class NotificationManager {
     return !_isLoaded;
   }
 
-  //TODO: test for jank and maybe move to separate isolate
-
-  Future<String> decodeNewNotifications() async {
-    String info = await pMethods.fetchNotifications();
-    _decode(info);
-    return info;
-  }
-
-  Future<String> decodeFromFile() async {
-    if (!_isLoaded) {
-      String info = await storage.readInfo();
-      _decode(info);
-      // TODO: exceptions
-      _isLoaded = true;
-      return info;
-    } else {
-      return 'already loaded';
-    }
-  }
-
-  Future<File> writeToFile() async {
-    String encodedInfo = '[${_encodeSessions()}]';
-    return await storage.writeInfo(encodedInfo);
-  }
-
-
-  // MANUAL ENCODING
-
-  String _encodeSessions({int index = 0}) {
-    if (index >= _sessions.length) {
-      return "";
-    } else if (index >= 1) {
-      return ',${encodeSession(_sessions[index])}' + _encodeSessions(index: index+1);
-    } else {
-      return '${encodeSession(_sessions[index])}' + _encodeSessions(index: index+1);
-    }
-  }
-
-  String encodeSession(Session s) {
-    return '{"starttime": "${s.getStartTime()}","endtime": "${s.getEndTime()}","notifications": [${_encodeNotifications(s)}]}';
-  }
-
-  String _encodeNotifications(Session s, {int index = 0}) {
-    List<NotificationEntry> notifications = s.getNotifications();
-    if (index >= notifications.length) {
-      return "";
-    } else if (index >= 1) {
-      return ',${_encodeNotification(notifications[index])}' + _encodeNotifications(s, index: index + 1);
-    } else {
-      return '${_encodeNotification(notifications[index])}' + _encodeNotifications(s, index: index + 1);
-    }
-  }
-
-  String _encodeNotification(NotificationEntry n) {
-    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}"}';
-  }
-
-  _decode(String info) {
-    // DEPENDENT ON JSON FORMAT
-    List sessions;
-    sessions = json.decode(info);
-    for (Map sessionInfo in sessions) {
-      Session session = new Session(sessionInfo["starttime"],sessionInfo["endtime"]);
-      List notifications = sessionInfo['notifications'];
-      for (Map notificationInfo in notifications) {
-        var notification = NotificationEntry.fromJSON(notificationInfo);
-        if (!_contains(notification))
-          session.add(notification);
-      }
-      if (session.length() > 0)
-        _addSession(session);
-    }
-  }
-
-  _addSession(Session s) {
+  addSession(Session s) {
     int newerSessions = 0;
     for (Session other in _sessions) {
       if (other.newerThan(s))
@@ -122,7 +51,11 @@ class NotificationManager {
     return _sessions;
   }
 
-  bool _contains(NotificationEntry n) {
+  Session getSession(int index) {
+    return _sessions[index];
+  }
+
+  bool contains(NotificationEntry n) {
     for (Session s in _sessions) {
       if (s.contains(n))
         return true;
@@ -130,16 +63,40 @@ class NotificationManager {
     return false;
   }
 
+  //TODO: test for jank and maybe move to separate isolate
+
+  Future<String> decodeNewNotifications() async {
+    String info = await pMethods.fetchNotifications();
+    _encoder.decode(info);
+    return info;
+  }
+
+  Future<String> decodeFromFile() async {
+    if (!_isLoaded) {
+      String info = await storage.readInfo();
+      _encoder.decode(info);
+      // TODO: exceptions
+      _isLoaded = true;
+      return info;
+    } else {
+      return 'already loaded';
+    }
+  }
+
+  Future<File> writeToFile() async {
+    String encodedInfo = '[${_encoder.encodeSessions()}]';
+    return await storage.writeInfo(encodedInfo);
+  }
+
 }
 
-// JSON (MODELS)
+// MODELS
 
 class Session {
 
   List<NotificationEntry> _notifications;
 
   int newest = 0;
-
   String start, end;
 
   Session(this.start,this.end) {
@@ -236,5 +193,71 @@ class NotificationStorage {
   Future<File> writeInfo(String info) async {
     final file = await _localFile;
     return await file.writeAsString(info);
+  }
+}
+
+class Utilities {
+  static String convertTime(int millis) {
+    DateTime date = new DateTime.fromMillisecondsSinceEpoch(millis);
+
+    var format = new DateFormat("Hms");
+    var timeString = format.format(date);
+
+    return timeString;
+  }
+}
+
+class JSONEncoder {
+
+  NotificationManager manager;
+
+  JSONEncoder(this.manager);
+
+  decode(String info) {
+    // DEPENDENT ON JSON FORMAT
+    List sessions;
+    sessions = json.decode(info);
+    for (Map sessionInfo in sessions) {
+      Session session = new Session(sessionInfo["starttime"],sessionInfo["endtime"]);
+      List notifications = sessionInfo['notifications'];
+      for (Map notificationInfo in notifications) {
+        var notification = NotificationEntry.fromJSON(notificationInfo);
+        if (!manager.contains(notification))
+          session.add(notification);
+      }
+      if (session.length() > 0)
+        manager.addSession(session);
+    }
+  }
+
+  // MANUAL ENCODING
+
+  String encodeSessions({int index = 0}) {
+    if (index >= manager.getSessions().length) {
+      return "";
+    } else if (index >= 1) {
+      return ',${encodeSession(manager.getSession(index))}' + encodeSessions(index: index+1);
+    } else {
+      return '${encodeSession(manager.getSession(index))}' + encodeSessions(index: index+1);
+    }
+  }
+
+  String encodeSession(Session s) {
+    return '{"starttime": "${s.getStartTime()}","endtime": "${s.getEndTime()}","notifications": [${_encodeNotifications(s)}]}';
+  }
+
+  String _encodeNotifications(Session s, {int index = 0}) {
+    List<NotificationEntry> notifications = s.getNotifications();
+    if (index >= notifications.length) {
+      return "";
+    } else if (index >= 1) {
+      return ',${_encodeNotification(notifications[index])}' + _encodeNotifications(s, index: index + 1);
+    } else {
+      return '${_encodeNotification(notifications[index])}' + _encodeNotifications(s, index: index + 1);
+    }
+  }
+
+  String _encodeNotification(NotificationEntry n) {
+    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}"}';
   }
 }

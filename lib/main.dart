@@ -2,37 +2,43 @@ import 'package:flutter/material.dart';
 
 import 'platform_comm.dart';
 import 'notification_management.dart';
-import 'package:intl/intl.dart';
 
 void main() => runApp(new App());
 
 class App extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
+
+    NotificationStorage storage = new NotificationStorage();
+    PlatformMethods pMethods = new PlatformMethods();
+    NotificationManager manager = new NotificationManager(pMethods, storage);
+
     return new MaterialApp(
       title: 'Naughtify',
       theme: new ThemeData(
         primarySwatch: Colors.lightGreen,
       ),
       home: new HomePage(
-          storage: new NotificationStorage(), pMethods: new PlatformMethods()),
+          storage: storage, pMethods: pMethods, manager: manager),
     );
+
   }
 }
 
 class HomePage extends StatefulWidget {
+
   final NotificationStorage storage;
   final PlatformMethods pMethods;
-  NotificationManager manager;
+  final NotificationManager manager;
 
-  HomePage({Key key, this.storage, this.pMethods}) : super(key: key) {
-    manager = new NotificationManager(new PlatformMethods(), storage);
-  }
+  HomePage({Key key, this.storage, this.pMethods, this.manager}) : super(key: key);
 
   MainState createState() => new MainState();
 }
 
 class MainState extends State<HomePage> {
+
   bool muted = false;
 
   Text notificationHistory = new Text("");
@@ -95,6 +101,9 @@ class MainState extends State<HomePage> {
   Widget _infoState = new Container();
 
   Widget _buildInfo() {
+
+    // TODO: make all this better
+
     Widget mainView = new FutureBuilder(
         future: widget.manager.decodeNewNotifications(),
         builder: (context, snapshot) {
@@ -107,7 +116,7 @@ class MainState extends State<HomePage> {
           }
           return _infoState;
         });
-    print('file loaded? ${!widget.manager.notLoaded()}');
+
     if (widget.manager.notLoaded()) {
       return new FutureBuilder(
           future: widget.manager.decodeFromFile(),
@@ -115,14 +124,15 @@ class MainState extends State<HomePage> {
             if (snapshot.hasData) {
               return mainView;
             } else if (snapshot.hasError) {
-              return new Text('error loading from file');
+              return new Text('error loading history');
             } else {
-              return new Text('loading history from storage...');
+              return new Text('loading history from storage');
             }
           });
     } else {
       return mainView;
     }
+
   }
 
   Widget _buildList() {
@@ -170,15 +180,6 @@ class MainState extends State<HomePage> {
   }
 
   Widget _buildNotificationView(NotificationEntry n) {
-    return new Text('${convertTime(n.timeCode)} : ${n.packageName}');
-  }
-
-  String convertTime(int millis) {
-    DateTime date = new DateTime.fromMillisecondsSinceEpoch(millis);
-
-    var format = new DateFormat("Hms");
-    var timeString = format.format(date);
-
-    return timeString;
+    return new Text('${Utilities.convertTime(n.timeCode)} : ${n.packageName}');
   }
 }
