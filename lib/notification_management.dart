@@ -14,8 +14,6 @@ class NotificationManager {
 
   List<Session> _sessions = new List<Session>();
 
-  // TODO: document
-
   NotificationManager(this.pMethods,this.storage) {
     _encoder = new JSONEncoder(this);
   }
@@ -26,6 +24,7 @@ class NotificationManager {
     return !_isLoaded;
   }
 
+  // adds the session and sorts it by time
   addSession(Session s) {
     int newerSessions = 0;
     for (Session other in _sessions) {
@@ -70,12 +69,14 @@ class NotificationManager {
 
   //TODO: test for jank and maybe move to separate isolate
 
+  // checks platform class and decodes
   Future<String> decodeNewNotifications() async {
     String info = await pMethods.fetchNotifications();
     _encoder.decode(info);
     return info;
   }
 
+  // decodes history
   Future<String> decodeFromFile() async {
     if (!_isLoaded) {
       String info = await storage.readInfo();
@@ -108,6 +109,7 @@ class Session {
     _notifications = new List<NotificationEntry>();
   }
 
+  // adds and sorts notification
   add(NotificationEntry n) {
     int newer = 0;
     for (NotificationEntry other in _notifications) {
@@ -151,9 +153,13 @@ class NotificationEntry {
 
   NotificationEntry(this.packageName, this.timeCode);
 
+  // using automatic decoding to model
   NotificationEntry.fromJSON(Map<String, dynamic> jsonObject)
     : packageName = jsonObject['packagename'],
       timeCode = jsonObject['timecode'];
+
+
+  // equality used to remove duplicate notifications (currently buggy)
 
   @override
   bool operator ==(Object other) =>
@@ -162,7 +168,7 @@ class NotificationEntry {
               runtimeType == other.runtimeType &&
               packageName == other.packageName &&
               sqrt(pow((other.timeCode - timeCode),2)) < 100; // Filter out close notifs
-              //TODO: fix this
+              //TODO: fix this (apps that send two things)
 
   @override
   int get hashCode =>
@@ -176,7 +182,6 @@ class NotificationStorage {
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
-    //final directory = await Directory.systemTemp.createTemp();
     return  directory.path;
   }
 
@@ -202,6 +207,7 @@ class NotificationStorage {
 }
 
 class Utilities {
+
   static String convertTime(int millis) {
     DateTime date = new DateTime.fromMillisecondsSinceEpoch(millis);
 
@@ -210,6 +216,7 @@ class Utilities {
 
     return timeString;
   }
+
 }
 
 class JSONEncoder {
@@ -219,20 +226,26 @@ class JSONEncoder {
   JSONEncoder(this.manager);
 
   decode(String info) {
+
     // DEPENDENT ON JSON FORMAT
-    List sessions;
-    sessions = json.decode(info);
+
+    List sessions = json.decode(info);
+
     for (Map sessionInfo in sessions) {
+
       Session session = new Session(sessionInfo["starttime"],sessionInfo["endtime"]);
       List notifications = sessionInfo['notifications'];
+
       for (Map notificationInfo in notifications) {
         var notification = NotificationEntry.fromJSON(notificationInfo);
         if (!manager.contains(notification))
           session.add(notification);
       }
+
       if (session.length() > 0)
         manager.addSession(session);
     }
+
   }
 
   // MANUAL ENCODING
