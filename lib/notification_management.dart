@@ -17,8 +17,7 @@ class NotificationManager {
 
   NotificationManager(this.pMethods,this.storage) {
     // temporary:
-    // TODO: find a place to write data
-    storage.writeInfo('[{"starttime": "1", "endtime": "2", "notifications": [{"timecode": 3,"packagename": "com.test"}]}]');
+    //storage.writeInfo('[{"starttime": "1", "endtime": "2", "notifications": [{"timecode": 3,"packagename": "com.test"}]}]',1);
   }
 
   bool _isLoaded = false;
@@ -32,7 +31,6 @@ class NotificationManager {
   Future<String> decodeNewNotifications() async {
     String info = await pMethods.fetchNotifications();
     _decode(info);
-    //await writeToFile();
     return info;
   }
 
@@ -54,15 +52,18 @@ class NotificationManager {
     }
   }
 
+  int writes = 1;
+
   Future<File> writeToFile() async {
-    print('writing to file...');
+    writes++;
+    print('(write $writes) writing to file...');
     String encodedInfo = '[${_encodeSessions()}]';
-    print('encoded info: ${encodedInfo}');
-    return await storage.writeInfo(encodedInfo);
+    print('(write $writes) encoded info: ${encodedInfo}');
+    return await storage.writeInfo(encodedInfo,writes);
   }
 
   String _encodeSessions({int index = 0}) {
-    print(' - encoding sessions');
+    print('(write $writes) - encoding sessions');
     if (index >= _sessions.length) {
       return "";
     } else if (index >= 1) {
@@ -73,7 +74,7 @@ class NotificationManager {
   }
 
   String encodeSession(Session s) {
-    print(' - - session encode');
+    print('(write $writes) - - session encode');
     return '{"starttime": "${s.getStartTime()}","endtime": "${s.getEndTime()}","notifications": [${_encodeNotifications(s)}]}';
   }
 
@@ -243,7 +244,7 @@ class NotificationStorage {
     }
   }
 
-  Future<File> writeInfo(String info) async {
+  Future<File> writeInfo(String info, int writes) async {
     final file = await _localFile;
 
 
@@ -251,9 +252,9 @@ class NotificationStorage {
 
 
     // Write the file
-    print('file write: info = $info');
+    print('(write $writes) file write: info = $info');
     var testFile = await file.writeAsString(info);
-    print('file test: contents = ${await testFile.readAsString()}');
+    print('(write $writes) file test: contents = ${await testFile.readAsString()}');
     return testFile;
   }
 }

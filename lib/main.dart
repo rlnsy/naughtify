@@ -100,6 +100,8 @@ class MainState extends State<HomePage> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             _infoState = _buildList();
+            widget.manager.writeToFile();
+            // TODO: move this so don't have to load info to write
           } else if (snapshot.hasError) {
             return new Text("there was an error getting notification info");
           }
