@@ -13,36 +13,89 @@ class NotificationManager {
 
   List<Session> _sessions = new List<Session>();
 
-  NotificationManager(this.pMethods,this.storage);
+  // TODO: clean up whole class
+
+  NotificationManager(this.pMethods,this.storage) {
+    // temporary:
+    // TODO: find a place to write data
+    storage.writeInfo('[{"starttime": "1", "endtime": "2", "notifications": [{"timecode": 3,"packagename": "com.test"}]}]');
+  }
+
+  bool _isLoaded = false;
+
+  bool notLoaded() {
+    return !_isLoaded;
+  }
 
   //TODO: test for jank and maybe move to separate isolate
 
   Future<String> decodeNewNotifications() async {
     String info = await pMethods.fetchNotifications();
     _decode(info);
-    writeToFile();
+    //await writeToFile();
     return info;
   }
 
   Future<String> decodeFromFile() async {
-    String info = await storage.readInfo();
-    try {
-      _decode(info);
-    } catch (e) {
-      print("error because file not valid yet");
+    if (!_isLoaded) {
+      print('decoding history from file...');
+      String info = await storage.readInfo();
+      print('info read from file: $info');
+      try {
+        _decode(info);
+      } catch (e) {
+        print('file decode: $e');
+        print(info);
+      }
+      _isLoaded = true;
+      return info;
+    } else {
+      return 'already loaded';
     }
   }
 
   Future<File> writeToFile() async {
-    return storage.writeInfo('[]');
+    print('writing to file...');
+    String encodedInfo = '[${_encodeSessions()}]';
+    print('encoded info: ${encodedInfo}');
+    return await storage.writeInfo(encodedInfo);
   }
 
-  String _encode() {
+  String _encodeSessions({int index = 0}) {
+    print(' - encoding sessions');
+    if (index >= _sessions.length) {
+      return "";
+    } else if (index >= 1) {
+      return ',${encodeSession(_sessions[index])}' + _encodeSessions(index: index+1);
+    } else {
+      return '${encodeSession(_sessions[index])}' + _encodeSessions(index: index+1);
+    }
+  }
 
+  String encodeSession(Session s) {
+    print(' - - session encode');
+    return '{"starttime": "${s.getStartTime()}","endtime": "${s.getEndTime()}","notifications": [${_encodeNotifications(s)}]}';
+  }
+
+  String _encodeNotifications(Session s, {int index = 0}) {
+    List<NotificationEntry> notifications = s.getNotifications();
+    if (index >= notifications.length) {
+      return "";
+    } else if (index >= 1) {
+      return ',${_encodeNotification(notifications[index])}' + _encodeNotifications(s, index: index + 1);
+    } else {
+      return '${_encodeNotification(notifications[index])}' + _encodeNotifications(s, index: index + 1);
+    }
+  }
+
+  String _encodeNotification(NotificationEntry n) {
+    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}"}';
   }
 
   _decode(String info) {
-    List sessions = json.decode(info);
+    List sessions;
+    sessions = json.decode(info);
+    print("decode: ${sessions.length} sessions found");
     for (Map sessionInfo in sessions) {
       Session session = new Session(sessionInfo["starttime"],sessionInfo["endtime"]);
       List notifications = sessionInfo['notifications'];
@@ -68,7 +121,7 @@ class NotificationManager {
   int getNumNotifications() {
     int num = 0;
     for (Session s in _sessions) {
-      num += s.notifications.length;
+      num += s.getNotifications().length;
     }
     return num;
   }
@@ -94,31 +147,34 @@ class NotificationManager {
 // JSON STUFF
 
 class Session {
-  final List<NotificationEntry> notifications = new List<NotificationEntry>();
+
+  List<NotificationEntry> _notifications;
 
   int newest = 0;
 
   String start, end;
 
-  Session(this.start,this.end);
+  Session(this.start,this.end) {
+    _notifications = new List<NotificationEntry>();
+  }
 
   add(NotificationEntry n) {
     int newer = 0;
-    for (NotificationEntry other in notifications) {
+    for (NotificationEntry other in _notifications) {
       if (other.timeCode > n.timeCode)
         newer++;
     }
-    notifications.insert(newer, n);
+    _notifications.insert(newer, n);
     if (newer == 0)
       newest = n.timeCode;
   }
 
   bool contains(NotificationEntry n) {
-    return notifications.contains(n);
+    return _notifications.contains(n);
   }
 
   int length() {
-    return notifications.length;
+    return _notifications.length;
   }
 
   bool newerThan(Session other) {
@@ -132,11 +188,16 @@ class Session {
   String getEndTime() {
     return end;
   }
+
+  List<NotificationEntry> getNotifications() {
+    return _notifications;
+  }
 }
 
 class NotificationEntry {
-  final String packageName;
-  final int timeCode;
+
+  String packageName;
+  int timeCode;
 
   NotificationEntry(this.packageName, this.timeCode);
 
@@ -163,20 +224,22 @@ class NotificationStorage {
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
+    //final directory = await Directory.systemTemp.createTemp();
+    return  directory.path;
   }
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/sessions.txt');
+    return new File('$path/sessions.json');
   }
 
   Future<String> readInfo() async {
     try {
       final file = await _localFile;
-      return file.readAsString();
+      return await file.readAsString();
     } catch (e) {
-      return 'error reading file';
+      print('error reading history file : $e');
+      return '[]';
     }
   }
 
@@ -188,6 +251,9 @@ class NotificationStorage {
 
 
     // Write the file
-    return file.writeAsString(info);
+    print('file write: info = $info');
+    var testFile = await file.writeAsString(info);
+    print('file test: contents = ${await testFile.readAsString()}');
+    return testFile;
   }
 }

@@ -37,12 +37,6 @@ class MainState extends State<HomePage> {
 
   Text notificationHistory = new Text("");
 
-  @override
-  void initState() {
-    super.initState();
-    widget.manager.decodeFromFile();
-  }
-
   Widget build(BuildContext context) {
     return new DefaultTabController(
         length: 2,
@@ -101,7 +95,7 @@ class MainState extends State<HomePage> {
   Widget _infoState = new Container();
 
   Widget _buildInfo() {
-    return new FutureBuilder(
+    Widget mainView = new FutureBuilder(
         future: widget.manager.decodeNewNotifications(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -111,6 +105,23 @@ class MainState extends State<HomePage> {
           }
           return _infoState;
         });
+    print('file loaded? ${!widget.manager.notLoaded()}');
+    if (widget.manager.notLoaded()) {
+      return new FutureBuilder(
+          future: widget.manager.decodeFromFile(),
+          builder: (context,snapshot) {
+            if (snapshot.hasData) {
+              print('decode has data, returning main view');
+              return mainView;
+            } else if (snapshot.hasError) {
+              return new Text('error loading from file');
+            } else {
+              return new Text('loading history from storage...');
+            }
+          });
+    } else {
+      return mainView;
+    }
   }
 
   Widget _buildList() {
@@ -151,7 +162,7 @@ class MainState extends State<HomePage> {
     List<Widget> views = new List<Widget>();
     views.add(new Text('Session: ${s.getStartTime()} to ${s.getEndTime()}'));
     views.add(new Text('Notifications receieved'));
-    for (NotificationEntry n in s.notifications) {
+    for (NotificationEntry n in s.getNotifications()) {
       views.add(_buildNotificationView(n));
     }
     return views;
