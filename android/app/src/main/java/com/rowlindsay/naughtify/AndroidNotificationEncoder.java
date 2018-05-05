@@ -30,6 +30,7 @@ public class AndroidNotificationEncoder {
             try {
                 info.put("timecode", sbn.getPostTime());
                 info.put("packagename", sbn.getPackageName());
+                info.put("rawinfo",sbn.toString());
             } catch (JSONException jse) {
                 Log.d("android encode", "error enncoding to json");
             }

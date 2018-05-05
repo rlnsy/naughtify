@@ -6,10 +6,8 @@ import 'notification_management.dart';
 void main() => runApp(new App());
 
 class App extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
-
     NotificationStorage storage = new NotificationStorage();
     PlatformMethods pMethods = new PlatformMethods();
     NotificationManager manager = new NotificationManager(pMethods, storage);
@@ -17,28 +15,26 @@ class App extends StatelessWidget {
     return new MaterialApp(
       title: 'Naughtify',
       theme: new ThemeData(
-        primarySwatch: Colors.lightGreen,
+        primarySwatch: Colors.cyan,
       ),
-      home: new HomePage(
-          storage: storage, pMethods: pMethods, manager: manager),
+      home:
+          new HomePage(storage: storage, pMethods: pMethods, manager: manager),
     );
-
   }
 }
 
 class HomePage extends StatefulWidget {
-
   final NotificationStorage storage;
   final PlatformMethods pMethods;
   final NotificationManager manager;
 
-  HomePage({Key key, this.storage, this.pMethods, this.manager}) : super(key: key);
+  HomePage({Key key, this.storage, this.pMethods, this.manager})
+      : super(key: key);
 
   MainState createState() => new MainState();
 }
 
 class MainState extends State<HomePage> {
-
   bool muted = false;
 
   Text notificationHistory = new Text("");
@@ -48,7 +44,11 @@ class MainState extends State<HomePage> {
         length: 2,
         child: new Scaffold(
           appBar: new AppBar(
-              title: new Text('Naughtify - Basic Prototype'),
+              title: new Text('Naughtify'),
+              actions: <Widget>[
+                new IconButton(
+                    icon: new Icon(Icons.settings), onPressed: _pushSettings),
+              ],
               bottom: new TabBar(tabs: [
                 new Tab(icon: new Icon(Icons.do_not_disturb_alt)),
                 new Tab(icon: new Icon(Icons.timeline)),
@@ -64,14 +64,37 @@ class MainState extends State<HomePage> {
         ));
   }
 
+  void _pushSettings() {
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+      return new Scaffold(
+          appBar: new AppBar(
+            title: new Text('App Settings'),
+          ),
+          body: new Column(
+            children: <Widget>[
+              new Text('click the button to erase history'),
+              new RaisedButton(
+                  onPressed: widget.manager.eraseHistory,
+                  child: new Text('erase')),
+            ],
+          ));
+    }));
+  }
+
   Widget _buildMainBody() {
     return new Center(
         child: new Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        new RaisedButton(
-            child: new Text("toggle mute"), onPressed: _toggleMute),
-        new Text("muted: ${_isMuted()}"),
+        new Text('Toggle mute on or off'),
+        new Expanded(
+            child: new Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            new RaisedButton(
+                child: new Text("toggle mute"), onPressed: _toggleMute),
+            new Text("muted: ${_isMuted()}"),
+          ],
+        ))
       ],
     ));
   }
@@ -101,24 +124,30 @@ class MainState extends State<HomePage> {
   Widget _infoState = new Container();
 
   Widget _buildInfo() {
-
     // TODO: make all this better
 
-    Widget mainView = new FutureBuilder(
-        future: widget.manager.decodeNewNotifications(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            _infoState = _buildList();
-          } else if (snapshot.hasError) {
-            return new Text("there was an error getting notification info");
-          }
-          return _infoState;
-        });
+    Widget mainView = new Column(
+      children: <Widget>[
+        new Text('Notification Session History'),
+        new Expanded(
+            child: new FutureBuilder(
+                future: widget.manager.decodeNewNotifications(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    _infoState = _buildList();
+                  } else if (snapshot.hasError) {
+                    return new Text(
+                        "there was an error getting notification info");
+                  }
+                  return _infoState;
+                }))
+      ],
+    );
 
     if (widget.manager.notLoaded()) {
       return new FutureBuilder(
           future: widget.manager.decodeFromFile(),
-          builder: (context,snapshot) {
+          builder: (context, snapshot) {
             if (snapshot.hasData) {
               return mainView;
             } else if (snapshot.hasError) {
@@ -130,7 +159,6 @@ class MainState extends State<HomePage> {
     } else {
       return mainView;
     }
-
   }
 
   Widget _buildList() {
@@ -178,6 +206,18 @@ class MainState extends State<HomePage> {
   }
 
   Widget _buildNotificationView(NotificationEntry n) {
-    return new Text('${Utilities.convertTime(n.timeCode)} : ${n.packageName}');
+    return new GestureDetector(onTap: () {
+      Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+        return _buildDetailedNotificationView(n);
+      }));
+    },
+    child: new Text('${Utilities.convertTime(n.timeCode)} : ${n.packageName}'),
+    );
   }
+
+  Widget _buildDetailedNotificationView(NotificationEntry n) {
+    return new Scaffold(appBar: new AppBar(title: new Text('Notification Details'),),
+    body: new Text('details go here'),);
+  }
+
 }

@@ -67,6 +67,12 @@ class NotificationManager {
     return false;
   }
 
+  // TODO: figure out why it doesn't work for new sessions
+  void eraseHistory() {
+    _sessions.clear();
+    storage.writeInfo('[]');
+  }
+
   //TODO: test for jank and maybe move to separate isolate
 
   // checks platform class and decodes
@@ -150,13 +156,15 @@ class NotificationEntry {
 
   String packageName;
   int timeCode;
+  String rawInfo;
 
   NotificationEntry(this.packageName, this.timeCode);
 
   // using automatic decoding to model
   NotificationEntry.fromJSON(Map<String, dynamic> jsonObject)
     : packageName = jsonObject['packagename'],
-      timeCode = jsonObject['timecode'];
+      timeCode = jsonObject['timecode'],
+      rawInfo = jsonObject['rawinfo'];
 
 
   // equality used to remove duplicate notifications (currently buggy)
@@ -276,6 +284,6 @@ class JSONEncoder {
   }
 
   String _encodeNotification(NotificationEntry n) {
-    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}"}';
+    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}","rawinfo": "${n.rawInfo}"}';
   }
 }
