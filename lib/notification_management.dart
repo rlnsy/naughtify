@@ -157,6 +157,8 @@ class NotificationEntry {
   String packageName;
   int timeCode;
   String rawInfo;
+  String title;
+  String text;
 
   NotificationEntry(this.packageName, this.timeCode);
 
@@ -164,7 +166,9 @@ class NotificationEntry {
   NotificationEntry.fromJSON(Map<String, dynamic> jsonObject)
     : packageName = jsonObject['packagename'],
       timeCode = jsonObject['timecode'],
-      rawInfo = jsonObject['rawinfo'];
+      rawInfo = jsonObject['rawinfo'],
+      title = jsonObject['title'],
+      text = jsonObject['text'];
 
 
   // equality used to remove duplicate notifications (currently buggy)
@@ -284,6 +288,8 @@ class JSONEncoder {
   }
 
   String _encodeNotification(NotificationEntry n) {
-    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}","rawinfo": "${n.rawInfo}"}';
+    return '{"timecode": ${n.timeCode},"packagename": "${n.packageName}",'
+        '"rawinfo": "${n.rawInfo}","title": "${n.title}","text": "${n.text}"}';
   }
+
 }

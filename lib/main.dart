@@ -217,7 +217,8 @@ class MainState extends State<HomePage> {
 
   Widget _buildDetailedNotificationView(NotificationEntry n) {
     return new Scaffold(appBar: new AppBar(title: new Text('Notification Details'),),
-    body: new Text('details go here'),);
+    body: new Text('time: ${Utilities.convertTime(n.timeCode)}\npackage: "${n.packageName}"\n'
+        'title: "${n.title}"\ntext: "${n.text}"'),);
   }
 
 }

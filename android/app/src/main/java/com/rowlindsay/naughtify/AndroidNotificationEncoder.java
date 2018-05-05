@@ -1,6 +1,7 @@
 package com.rowlindsay.naughtify;
 
 import android.annotation.TargetApi;
+import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import org.json.JSONArray;
@@ -31,6 +32,10 @@ public class AndroidNotificationEncoder {
                 info.put("timecode", sbn.getPostTime());
                 info.put("packagename", sbn.getPackageName());
                 info.put("rawinfo",sbn.toString());
+                Bundle extras = sbn.getNotification().extras;
+                info.put("title",extras.getString("android.title"));
+                info.put("text",extras.getCharSequence("android.text").toString());
+                // TODO: store icons to resources
             } catch (JSONException jse) {
                 Log.d("android encode", "error enncoding to json");
             }
