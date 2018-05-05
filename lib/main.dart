@@ -85,38 +85,36 @@ class MainState extends State<HomePage> {
     return new Center(
         child: new Column(
       children: <Widget>[
-        new Text('Toggle mute on or off'),
+        new Text('Toggle mute on or off',
+          style: new TextStyle(fontWeight: FontWeight.bold),),
         new Expanded(
             child: new Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            new RaisedButton(
-                child: new Text("toggle mute"), onPressed: _toggleMute),
-            new Text("muted: ${_isMuted()}"),
+            new Switch(value: muted,
+                onChanged: (bool val) {
+                  setState(() {
+                    muted = val;
+                  });
+                  widget.pMethods.toggleMuteMode();
+                }),
+            new Text('${_listening()}')
           ],
         ))
       ],
     ));
   }
 
-  _toggleMute() {
-    bool newValue;
-    if (muted) {
-      newValue = false;
-    } else {
-      newValue = true;
-    }
-    widget.pMethods.toggleMuteMode();
-    setState(() {
-      muted = newValue;
-    });
+  String _listening() {
+    if (muted)
+      return 'listening for notifications...';
+    return '';
   }
 
-  String _isMuted() {
+  String _toggleStatus() {
     if (muted)
-      return "yes - currently listening for notifications";
-    else
-      return "no";
+      return 'mute on';
+    return 'mute off';
   }
 
   // VIEW STUFF
@@ -128,7 +126,8 @@ class MainState extends State<HomePage> {
 
     Widget mainView = new Column(
       children: <Widget>[
-        new Text('Notification Session History'),
+        new Text('Notification Session History',
+          style: new TextStyle(fontWeight: FontWeight.bold),),
         new Expanded(
             child: new FutureBuilder(
                 future: widget.manager.decodeNewNotifications(),
@@ -167,8 +166,16 @@ class MainState extends State<HomePage> {
         itemBuilder: (context, i) {
           if (i.isOdd) return new Divider();
           final index = i ~/ 2;
-          if (index >= widget.manager.getNumSessions()) {
+          if (index > widget.manager.getNumSessions()) {
             return new Container();
+          } else if (index == widget.manager.getNumSessions()) {
+            String message;
+            if (index == 0)
+              message = 'there\'s nothing here! \u{1F42D}';
+            else
+              message = 'this is the beginning \u{1F412}';
+            return new Center(
+                child: new Text(message));
           } else {
             return _buildSessionView(widget.manager.getSessions()[index]);
           }
@@ -181,7 +188,7 @@ class MainState extends State<HomePage> {
         Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
           return new Scaffold(
             appBar: new AppBar(
-              title: new Text('Sessions Information'),
+              title: new Text('Session Information'),
             ),
             body: new Column(
               children: _buildNotificationViews(s),
