@@ -13,7 +13,7 @@ class PlatformMethods {
   static const AndroidNotificationChannel _channel = const AndroidNotificationChannel(
     id: 'test_notification',
     name: 'naughtify-test',
-    description: 'grant naughtify the ability to show notifications',
+    description: 'grant naughtify the ability to send test notifications',
     importance: AndroidNotificationChannelImportance.HIGH,
   );
 
