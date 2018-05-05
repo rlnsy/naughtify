@@ -13,9 +13,19 @@ class PlatformMethods {
   static const AndroidNotificationChannel _channel = const AndroidNotificationChannel(
     id: 'test_notification',
     name: 'naughtify-test',
-    description: 'grant naughtify the ability to show notifications',
+    description: 'grant naughtify the ability to send test notifications',
     importance: AndroidNotificationChannelImportance.HIGH,
   );
+
+  Future<bool> _notificationChannelNeeded() async {
+    return await platform.invokeMethod("isChannelNeeded");
+  }
+
+  _createNotificationChannel() {
+    print('creating a new channel');
+    LocalNotifications.createAndroidNotificationChannel(channel: _channel);
+    hasNotificationChannel = true;
+  }
 
   clearNotifications() async {
     try {
@@ -25,14 +35,12 @@ class PlatformMethods {
     }
   }
 
-  Future<int> getNumNotifications() async {
-    int num;
+  Future<String> fetchNotifications() async {
     try {
-      num = await platform.invokeMethod('getNumNotifications');
+      return await platform.invokeMethod('getNotifications');
     } on PlatformException catch (e) {
-      num = -1;
+      return "error getting notifications";
     }
-    return num;
   }
 
   sendNotification() {
@@ -53,13 +61,7 @@ class PlatformMethods {
     });
   }
 
-  Future<bool> _notificationChannelNeeded() async {
-    return await platform.invokeMethod("isChannelNeeded");
-  }
-
-  _createNotificationChannel() {
-    print('creating a new channel');
-    LocalNotifications.createAndroidNotificationChannel(channel: _channel);
-    hasNotificationChannel = true;
+  toggleMuteMode() {
+    platform.invokeMethod("toggleMuteMode");
   }
 }
