@@ -85,13 +85,19 @@ class MainState extends State<HomePage> {
     return new Center(
         child: new Column(
       children: <Widget>[
-        new Text('Toggle mute on or off',
-          style: new TextStyle(fontWeight: FontWeight.bold),),
+        new Padding(
+          padding: new EdgeInsets.all(8.0),
+          child: new Text(
+            'Toggle mute on or off',
+            style: new TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
         new Expanded(
             child: new Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            new Switch(value: muted,
+            new Switch(
+                value: muted,
                 onChanged: (bool val) {
                   setState(() {
                     muted = val;
@@ -106,14 +112,12 @@ class MainState extends State<HomePage> {
   }
 
   String _listening() {
-    if (muted)
-      return 'listening for notifications...';
+    if (muted) return 'listening for notifications...';
     return '';
   }
 
   String _toggleStatus() {
-    if (muted)
-      return 'mute on';
+    if (muted) return 'mute on';
     return 'mute off';
   }
 
@@ -126,8 +130,13 @@ class MainState extends State<HomePage> {
 
     Widget mainView = new Column(
       children: <Widget>[
-        new Text('Notification Session History',
-          style: new TextStyle(fontWeight: FontWeight.bold),),
+        new Padding(
+          padding: new EdgeInsets.all(8.0),
+          child: new Text(
+            'Notification Session History',
+            style: new TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
         new Expanded(
             child: new FutureBuilder(
                 future: widget.manager.decodeNewNotifications(),
@@ -161,71 +170,83 @@ class MainState extends State<HomePage> {
   }
 
   Widget _buildList() {
-    return new ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemBuilder: (context, i) {
-          if (i.isOdd) return new Divider();
-          final index = i ~/ 2;
-          if (index > widget.manager.getNumSessions()) {
-            return new Container();
-          } else if (index == widget.manager.getNumSessions()) {
-            String message;
-            if (index == 0)
-              message = 'there\'s nothing here! \u{1F42D}';
-            else
-              message = 'this is the beginning \u{1F412}';
-            return new Center(
-                child: new Text(message));
-          } else {
-            return _buildSessionView(widget.manager.getSessions()[index]);
-          }
-        });
+    return new ListView(
+      children: _buildSessionsEntries(),
+    );
+  }
+
+  List<Widget> _buildSessionsEntries() {
+    List<Widget> entries = new List<Widget>();
+    for (Session s in widget.manager.getSessions()) {
+      entries.add(_buildSessionView(s));
+    }
+    return entries;
   }
 
   Widget _buildSessionView(Session s) {
     return new GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-          return new Scaffold(
-            appBar: new AppBar(
-              title: new Text('Session Information'),
-            ),
-            body: new Column(
-              children: _buildNotificationViews(s),
-            ),
-          );
-        }));
-      },
-      child: new Column(
-        children: _buildNotificationViews(s),
-      ),
+        onTap: () {
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            return new Scaffold(
+              appBar: new AppBar(
+                title: const Text('Notifications'),
+              ),
+              body: _buildSessionDetail(s),
+            );
+          }));
+        },
+        child: new Card(
+            child: new ListTile(
+          title: new Text('${s.getStartTime()} to ${s.getEndTime()}'),
+          subtitle:
+              new Text('${s.getNumNotifications()} notifications received'),
+        )));
+  }
+
+  Widget _buildSessionDetail(Session s) {
+    List<Widget> views = new List<Widget>();
+
+    for (NotificationEntry n in s.getNotifications()) {
+      views.add(_buildNotificationView(n));
+      views.add(new Text('${Utilities.convertTime(n.timeCode)}'));
+    }
+    return new Column(
+      children: views,
     );
   }
 
-  List<Widget> _buildNotificationViews(Session s) {
-    List<Widget> views = new List<Widget>();
-    views.add(new Text('Session: ${s.getStartTime()} to ${s.getEndTime()}'));
-    views.add(new Text('Notifications receieved'));
-    for (NotificationEntry n in s.getNotifications()) {
-      views.add(_buildNotificationView(n));
-    }
-    return views;
-  }
-
   Widget _buildNotificationView(NotificationEntry n) {
-    return new GestureDetector(onTap: () {
-      Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-        return _buildDetailedNotificationView(n);
-      }));
-    },
-    child: new Text('${Utilities.convertTime(n.timeCode)} : ${n.packageName}'),
+    return new GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+          return _buildDetailedNotificationView(n);
+        }));
+      },
+      child: new Card(
+          child: new ListTile(
+        leading: new FutureBuilder(
+            future: n.getPackIcon(widget.storage),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return snapshot.data;
+              } else {
+                return new Icon(Icons.file_upload); // placeholder
+              }
+            }),
+        title: new Text('${n.title}'),
+        subtitle: new Text(n.text),
+      )),
     );
   }
 
   Widget _buildDetailedNotificationView(NotificationEntry n) {
-    return new Scaffold(appBar: new AppBar(title: new Text('Notification Details'),),
-    body: new Text('time: ${Utilities.convertTime(n.timeCode)}\npackage: "${n.packageName}"\n'
-        'title: "${n.title}"\ntext: "${n.text}"'),);
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('Notification Details'),
+      ),
+      body: new Text(
+          'time: ${Utilities.convertTime(n.timeCode)}\npackage: "${n.packageName}"\n'
+          'title: "${n.title}"\ntext: "${n.text}"'),
+    );
   }
-
 }

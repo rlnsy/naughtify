@@ -51,11 +51,11 @@ class PlatformMethods {
           _createNotificationChannel();
         }
         LocalNotifications.createNotification(
-            title: "Testing...", content: "This is just a test notification", id: _notID,
+            title: "Testing 1 2 3", content: "this is just a test notification", id: _notID,
             androidSettings: new AndroidSettings(channel: _channel));
       } else {
         LocalNotifications.createNotification(
-            title: "Basic", content: "Notification", id: _notID);
+            title: "Testing 1 2 3", content: "this is just a test notification", id: _notID);
       }
         _notID++;
     });

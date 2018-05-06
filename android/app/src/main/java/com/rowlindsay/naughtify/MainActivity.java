@@ -5,6 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,6 +19,13 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugins.GeneratedPluginRegistrant;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import static android.content.ContentValues.TAG;
 
 @TargetApi(25)
 public class MainActivity extends FlutterActivity {
@@ -81,11 +92,13 @@ public class MainActivity extends FlutterActivity {
                 eventName = "unrecognized notification event";
             }
 
-            Log.d("notification", "event receive: " + eventName);
-
             StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
-            if (infoGot != null)
+            if (infoGot != null) {
                 encoder.encode(infoGot);
+                // TODO: only store when neccessary
+                // TODO: fix
+                storeAppIcon(infoGot.getPackageName());
+            }
 
             if (eventName.equals("notification added") && muteMode)
                 clearNotifications();
@@ -119,5 +132,44 @@ public class MainActivity extends FlutterActivity {
     // note: version code for oreo was not available
     private boolean isChannelNeeded() {
         return Build.VERSION.SDK_INT >= 26;
+    }
+
+
+    // ICON STORING
+
+    private void storeAppIcon(String packName) {
+        try {
+            Drawable icon = getPackageManager().getApplicationIcon(packName);
+            Bitmap bitmap = ((BitmapDrawable) icon).getBitmap();
+            Log.d("icon-store","converted image, storing...");
+            storeIconFile(bitmap,packName);
+        }
+        catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void storeIconFile(Bitmap image, String packName) {
+        File pictureFile = getIconDir(packName);
+        if (pictureFile == null) {
+            Log.d(TAG,
+                    "Error creating media file, check storage permissions: ");
+            return;
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            image.compress(Bitmap.CompressFormat.PNG, 90, fos);
+            fos.close();
+            Log.d("icon-store","closed output stream");
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "File not found: " + e.getMessage());
+        } catch (IOException e) {
+            Log.d(TAG, "Error accessing file: " + e.getMessage());
+        }
+    }
+
+    private File getIconDir(String packName) {
+        // TODO: top level directory currently hard-coded
+        return new File("/data/data/com.rowlindsay.naughtify/app_flutter/packicons/" + packName + ".png");
     }
 }

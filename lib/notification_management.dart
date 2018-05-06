@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 
 class NotificationManager {
 
@@ -150,6 +151,10 @@ class Session {
   List<NotificationEntry> getNotifications() {
     return _notifications;
   }
+
+  int getNumNotifications() {
+    return _notifications.length;
+  }
 }
 
 class NotificationEntry {
@@ -159,6 +164,7 @@ class NotificationEntry {
   String rawInfo;
   String title;
   String text;
+  Image packIcon;
 
   NotificationEntry(this.packageName, this.timeCode);
 
@@ -169,6 +175,15 @@ class NotificationEntry {
       rawInfo = jsonObject['rawinfo'],
       title = jsonObject['title'],
       text = jsonObject['text'];
+
+
+
+  Future<Image> getPackIcon(NotificationStorage storage) async {
+    if (packIcon == null) {
+      packIcon = await storage.getPackIcon(packageName);
+    }
+    return packIcon;
+  }
 
 
   // equality used to remove duplicate notifications (currently buggy)
@@ -215,6 +230,12 @@ class NotificationStorage {
   Future<File> writeInfo(String info) async {
     final file = await _localFile;
     return await file.writeAsString(info);
+  }
+
+  Future<Image> getPackIcon(String packName) async {
+    final path = await _localPath;
+    File iconFile = new File('$path/packicons/${packName}.png');
+    return new Image.file(iconFile);
   }
 }
 
