@@ -3,14 +3,15 @@ import 'package:local_notifications/local_notifications.dart';
 import 'dart:async';
 
 class PlatformMethods {
-
-  static const platform = const MethodChannel('com.rowlindsay/notification');
+  static const platform =
+      const MethodChannel('com.rowlindsay/platform-methods');
 
   // TODO: make channel persist for install
   bool hasNotificationChannel = false;
   int _notID = 0;
 
-  static const AndroidNotificationChannel _channel = const AndroidNotificationChannel(
+  static const AndroidNotificationChannel _channel =
+      const AndroidNotificationChannel(
     id: 'test_notification',
     name: 'naughtify-test',
     description: 'grant naughtify the ability to send test notifications',
@@ -43,6 +44,11 @@ class PlatformMethods {
     }
   }
 
+  Future<bool> platformIsAndroid() {
+    return platform.invokeMethod("isAndroid");
+  }
+
+  // no-op on ios // TEMPORARILY DISABLED
   sendNotification() {
     var channelNeeded = _notificationChannelNeeded();
     channelNeeded.then((isNeeded) {
@@ -51,13 +57,15 @@ class PlatformMethods {
           _createNotificationChannel();
         }
         LocalNotifications.createNotification(
-            title: "Testing...", content: "This is just a test notification", id: _notID,
+            title: "Testing: 1,2,3...",
+            content: "(this is just a test notification)",
+            id: _notID,
             androidSettings: new AndroidSettings(channel: _channel));
       } else {
         LocalNotifications.createNotification(
-            title: "Basic", content: "Notification", id: _notID);
+            title: "Testing: 1,2,3...", content: "(this is just a test notification)", id: _notID);
       }
-        _notID++;
+      _notID++;
     });
   }
 

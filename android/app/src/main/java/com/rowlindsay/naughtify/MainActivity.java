@@ -19,7 +19,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 @TargetApi(25)
 public class MainActivity extends FlutterActivity {
 
-    private static final String NOTIFICATION_CHANNEL = "com.rowlindsay/notification";
+    private static final String PLATFORM_METHOD_CHANNEL = "com.rowlindsay/platform-methods";
 
     private NotificationEventReceiver receiver;
 
@@ -33,7 +33,7 @@ public class MainActivity extends FlutterActivity {
         super.onCreate(savedInstanceState);
         GeneratedPluginRegistrant.registerWith(this);
 
-        new MethodChannel(getFlutterView(), NOTIFICATION_CHANNEL).setMethodCallHandler(
+        new MethodChannel(getFlutterView(), PLATFORM_METHOD_CHANNEL).setMethodCallHandler(
                 new MethodChannel.MethodCallHandler() {
                     @Override
                     public void onMethodCall(MethodCall call, Result result) {
@@ -68,6 +68,8 @@ public class MainActivity extends FlutterActivity {
             result.success(muteMode);
         } else if (call.method.equals("getNotifications")) {
             result.success(encoder.getHistory());
+        } else if (call.method.equals("isAndroid")) {
+            result.success(true);
         } else {
             result.notImplemented();
         }
