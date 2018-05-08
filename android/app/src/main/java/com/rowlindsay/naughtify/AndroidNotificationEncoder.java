@@ -1,8 +1,7 @@
 package com.rowlindsay.naughtify;
 
 import android.annotation.TargetApi;
-import android.os.Bundle;
-import android.service.notification.StatusBarNotification;
+import android.content.Intent;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,17 +24,15 @@ public class AndroidNotificationEncoder {
     }
 
     // no-op if not in a session
-    public void encode(StatusBarNotification sbn) {
+    public void encode(Intent infoIntent) {
         if (inSession()) {
             JSONObject info = new JSONObject();
             try {
-                info.put("timecode", sbn.getPostTime());
-                info.put("packagename", sbn.getPackageName());
-                info.put("rawinfo",sbn.toString());
-                Bundle extras = sbn.getNotification().extras;
-                info.put("title",extras.getString("android.title"));
-                info.put("text",extras.getCharSequence("android.text").toString());
-                // TODO: store icons to resources
+                info.put("timecode", infoIntent.getLongExtra("timecode",0));
+                info.put("packagename", infoIntent.getStringExtra("packagename"));
+                info.put("rawinfo",infoIntent.getStringExtra("rawinfo"));
+                info.put("title",infoIntent.getStringExtra("title"));
+                info.put("text",infoIntent.getStringExtra("text"));
             } catch (JSONException jse) {
                 Log.d("android encode", "error enncoding to json");
             }

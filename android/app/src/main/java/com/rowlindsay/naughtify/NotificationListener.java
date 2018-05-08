@@ -23,17 +23,27 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Intent i = new Intent("com.rowlindsay.NOTIFICATION_LISTEN");
+        i.putExtra("type","listener event");
         i.putExtra("notification event","notification added");
         sendBroadcast(i);
 
         Intent notificationSend = new Intent("com.rowlindsay.NOTIFICATION_LISTEN");
-        notificationSend.putExtra("notification info",sbn);
+
+        // INFORMATION
+        notificationSend.putExtra("type","information");
+        notificationSend.putExtra("packagename",sbn.getPackageName());
+        notificationSend.putExtra("timecode",sbn.getPostTime());
+        notificationSend.putExtra("title",sbn.getNotification().extras.getString("android.title"));
+        notificationSend.putExtra("text",sbn.getNotification().extras.getCharSequence("android.text").toString());
+        notificationSend.putExtra("rawinfo",sbn.toString());
+
         sendBroadcast(notificationSend);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Intent i = new Intent("com.rowlindsay.NOTIFICATION_LISTEN");
+        i.putExtra("type","listener event");
         i.putExtra("notification event","notification removed");
         sendBroadcast(i);
     }

@@ -12,7 +12,6 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import io.flutter.app.FlutterActivity;
 import io.flutter.plugin.common.MethodCall;
@@ -87,24 +86,31 @@ public class MainActivity extends FlutterActivity {
     private class NotificationEventReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String eventName = intent.getStringExtra("notification event");
-            if (eventName == null) {
-                eventName = "unrecognized notification event";
-            }
 
-            StatusBarNotification infoGot = intent.getParcelableExtra("notification info");
-            if (infoGot != null) {
-                encoder.encode(infoGot);
+
+            String type = intent.getStringExtra("type");
+
+            if (type.equals("listener event")) {
+                String eventName = intent.getStringExtra("notification event");
+                if (eventName == null) {
+                    eventName = "unrecognized notification event";
+                }
+                if (eventName.equals("notification added") && muteMode)
+                    clearNotifications();
+            } else if (type.equals("information")) {
+                encoder.encode(intent);
+                String packName = intent.getStringExtra("packagename");
                 // TODO: only store when neccessary
-                storeAppIcon(infoGot.getPackageName());
+                // TODO: investigate storage usage
+                storeAppIcon(packName);
             }
-
-            if (eventName.equals("notification added") && muteMode)
-                clearNotifications();
         }
     }
 
     private void toggleMuteMode() {
+
+        // TODO: figure out why some notifications come and aren't cleared
+
         muteMode = !muteMode;
         AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (muteMode) {
@@ -145,6 +151,8 @@ public class MainActivity extends FlutterActivity {
         }
         catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
+        } catch (RuntimeException e) {
+            Log.d("icon store","received an incompatible icon");
         }
     }
 

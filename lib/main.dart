@@ -204,6 +204,9 @@ class MainState extends State<HomePage> {
   }
 
   Widget _buildSessionDetail(Session s) {
+
+    // TODO: fix overflow
+
     List<Widget> views = new List<Widget>();
 
     for (NotificationEntry n in s.getNotifications()) {
