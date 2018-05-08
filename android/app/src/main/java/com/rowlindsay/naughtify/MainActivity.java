@@ -96,7 +96,6 @@ public class MainActivity extends FlutterActivity {
             if (infoGot != null) {
                 encoder.encode(infoGot);
                 // TODO: only store when neccessary
-                // TODO: fix
                 storeAppIcon(infoGot.getPackageName());
             }
 
@@ -160,7 +159,6 @@ public class MainActivity extends FlutterActivity {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             image.compress(Bitmap.CompressFormat.PNG, 90, fos);
             fos.close();
-            Log.d("icon-store","closed output stream");
         } catch (FileNotFoundException e) {
             Log.d(TAG, "File not found: " + e.getMessage());
         } catch (IOException e) {
@@ -169,18 +167,15 @@ public class MainActivity extends FlutterActivity {
     }
 
     private File getIconDir(String packName) {
-        // TODO: top level directory currently hard-coded
         String iconDir = getApplicationInfo().dataDir + "/app_flutter/packicons/";
 
         File iconsDir = new File(iconDir);
         if (! iconsDir.exists()){
             if (! iconsDir.mkdirs()){
-                Log.d("storing","could not make directory");
                 return null;
             }
         }
 
-        Log.d("icon storing","directory: " + iconDir);
         return new File( iconDir + packName + ".png");
     }
 }
