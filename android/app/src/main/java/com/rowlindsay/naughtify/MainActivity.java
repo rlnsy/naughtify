@@ -170,6 +170,17 @@ public class MainActivity extends FlutterActivity {
 
     private File getIconDir(String packName) {
         // TODO: top level directory currently hard-coded
-        return new File("/data/data/com.rowlindsay.naughtify/app_flutter/packicons/" + packName + ".png");
+        String iconDir = getApplicationInfo().dataDir + "/app_flutter/packicons/";
+
+        File iconsDir = new File(iconDir);
+        if (! iconsDir.exists()){
+            if (! iconsDir.mkdirs()){
+                Log.d("storing","could not make directory");
+                return null;
+            }
+        }
+
+        Log.d("icon storing","directory: " + iconDir);
+        return new File( iconDir + packName + ".png");
     }
 }

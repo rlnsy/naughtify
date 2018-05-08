@@ -214,6 +214,7 @@ class NotificationStorage {
 
   Future<File> get _localFile async {
     final path = await _localPath;
+    print('local path: $path');
     return new File('$path/sessions.json');
   }
 
